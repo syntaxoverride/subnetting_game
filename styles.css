@@ -618,8 +618,18 @@ kbd {
     transition: background-color 0.2s;
 }
 
-.hint-btn:hover {
+.hint-btn:hover:not(:disabled) {
     background-color: #138496;
+}
+
+.hint-btn.hint-locked {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.hint-btn.hint-locked:hover {
+    background-color: #6c757d;
 }
 
 .hint-content {

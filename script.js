@@ -43,8 +43,117 @@ let gameState = {
     allocatedSubnets: [],
     gameActive: false,
     awaitingNext: false,
-    hintLevel: 0
+    hintLevel: 0,
+    questionStartTime: null,
+    hintCountdownInterval: null
 };
+
+// Hint unlock delays in seconds from when the question appears
+// Level 1: 60s, Level 2: 150s (2:30), Level 3: 240s (4:00)
+const HINT_UNLOCK_TIMES = [60, 150, 240];
+
+// Hint button label for each upcoming level
+const HINT_LABELS = [
+    'Show Hint (Level 1)',
+    'More Help (Level 2)',
+    'Show Answer (Level 3)'
+];
+
+function formatCountdown(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m > 0 ? `${m}m ${s.toString().padStart(2, '0')}s` : `${s}s`;
+}
+
+// Determines which hint level is currently available based on elapsed time
+function getAvailableHintLevel() {
+    if (!gameState.questionStartTime) return -1;
+    const elapsed = (Date.now() - gameState.questionStartTime) / 1000;
+    if (elapsed >= HINT_UNLOCK_TIMES[2]) return 3; // all 3 available
+    if (elapsed >= HINT_UNLOCK_TIMES[1]) return 2;
+    if (elapsed >= HINT_UNLOCK_TIMES[0]) return 1;
+    return 0; // none available yet
+}
+
+// Returns seconds until the next hint level unlocks
+function getSecondsUntilNextHint() {
+    if (!gameState.questionStartTime) return 0;
+    const elapsed = (Date.now() - gameState.questionStartTime) / 1000;
+
+    // Find which hint level the student needs next
+    let nextNeededLevel;
+    if (!hintContentEl.classList.contains('active')) {
+        nextNeededLevel = 0; // hasn't opened any hint yet
+    } else if (gameState.hintLevel === 0) {
+        nextNeededLevel = 1; // needs level 2
+    } else if (gameState.hintLevel === 1) {
+        nextNeededLevel = 2; // needs level 3
+    } else {
+        return 0; // all hints shown
+    }
+
+    const unlockTime = HINT_UNLOCK_TIMES[nextNeededLevel];
+    const remaining = Math.ceil(unlockTime - elapsed);
+    return remaining > 0 ? remaining : 0;
+}
+
+function updateHintButtonState() {
+    const remaining = getSecondsUntilNextHint();
+
+    if (remaining > 0) {
+        // Still locked — show countdown
+        let label;
+        if (!hintContentEl.classList.contains('active')) {
+            label = HINT_LABELS[0];
+        } else if (gameState.hintLevel === 0) {
+            label = HINT_LABELS[1];
+        } else if (gameState.hintLevel === 1) {
+            label = HINT_LABELS[2];
+        } else {
+            label = 'Hide Hints';
+        }
+        showHintBtn.textContent = `${label} (${formatCountdown(remaining)})`;
+        showHintBtn.disabled = true;
+        showHintBtn.classList.add('hint-locked');
+    } else {
+        // Unlocked
+        if (!hintContentEl.classList.contains('active')) {
+            showHintBtn.textContent = HINT_LABELS[0];
+        } else if (gameState.hintLevel === 0) {
+            showHintBtn.textContent = HINT_LABELS[1];
+        } else if (gameState.hintLevel === 1) {
+            showHintBtn.textContent = HINT_LABELS[2];
+        } else {
+            showHintBtn.textContent = 'Hide Hints';
+        }
+        showHintBtn.disabled = false;
+        showHintBtn.classList.remove('hint-locked');
+    }
+}
+
+function startHintCountdown() {
+    // Clear any existing countdown
+    if (gameState.hintCountdownInterval) {
+        clearInterval(gameState.hintCountdownInterval);
+    }
+    gameState.questionStartTime = Date.now();
+    updateHintButtonState();
+    gameState.hintCountdownInterval = setInterval(() => {
+        updateHintButtonState();
+        // Stop interval once all hints are available and revealed
+        if (gameState.hintLevel === 2 || !gameState.gameActive) {
+            clearInterval(gameState.hintCountdownInterval);
+            gameState.hintCountdownInterval = null;
+        }
+    }, 1000);
+}
+
+function stopHintCountdown() {
+    if (gameState.hintCountdownInterval) {
+        clearInterval(gameState.hintCountdownInterval);
+        gameState.hintCountdownInterval = null;
+    }
+}
 
 // ============================================================
 // Immersive scenarios for each difficulty level
@@ -609,9 +718,11 @@ function updateHint(question) {
     const blockSize = Math.pow(2, hostBits);
     const usableHosts = question.usableHosts;
 
-    showHintBtn.textContent = 'Show Hint (Level 1)';
     hintContentEl.classList.remove('active');
     gameState.hintLevel = 0;
+
+    // Start the hint countdown timer for this question
+    startHintCountdown();
 
     // Build all 3 levels of hint
     const hintLevels = [];
@@ -845,6 +956,7 @@ function checkAnswers() {
 function endGame() {
     gameState.gameActive = false;
     gameState.awaitingNext = false;
+    stopHintCountdown();
 
     // Show completion message in the feedback panel
     if (feedbackDetailEl) {
@@ -931,32 +1043,48 @@ closeHelpBtn.addEventListener('click', () => {
     helpModal.style.display = 'none';
 });
 
-// Hint Button — accumulates hint levels (previous hints stay visible)
+// Hint Button — accumulates hint levels with time-gating
 showHintBtn.addEventListener('click', () => {
     const levels = subnetHintEl._hintLevels;
     if (!levels) return;
 
+    // If hints are fully revealed, allow toggling visibility
+    if (gameState.hintLevel === 2 && hintContentEl.classList.contains('active')) {
+        hintContentEl.classList.remove('active');
+        showHintBtn.textContent = 'Show Hints';
+        showHintBtn.disabled = false;
+        showHintBtn.classList.remove('hint-locked');
+        return;
+    }
+    // Re-show hidden hints
+    if (gameState.hintLevel === 2 && !hintContentEl.classList.contains('active')) {
+        hintContentEl.classList.add('active');
+        showHintBtn.textContent = 'Hide Hints';
+        return;
+    }
+
+    // Check if the next hint level is unlocked
+    if (getSecondsUntilNextHint() > 0) return;
+
     if (!hintContentEl.classList.contains('active')) {
         // First click: show level 1
         hintContentEl.classList.add('active');
-        gameState.hintLevel = 0;
         subnetHintEl.innerHTML = levels[0];
-        showHintBtn.textContent = 'More Help (Level 2)';
+        updateHintButtonState();
     } else if (gameState.hintLevel === 0) {
         // Second click: append level 2
         gameState.hintLevel = 1;
         subnetHintEl.innerHTML += '<hr class="hint-divider">' + levels[1];
-        showHintBtn.textContent = 'Show Answer (Level 3)';
+        updateHintButtonState();
     } else if (gameState.hintLevel === 1) {
         // Third click: append level 3
         gameState.hintLevel = 2;
         subnetHintEl.innerHTML += '<hr class="hint-divider">' + levels[2];
         showHintBtn.textContent = 'Hide Hints';
-    } else {
-        // Fourth click: hide all
-        hintContentEl.classList.remove('active');
-        gameState.hintLevel = 0;
-        showHintBtn.textContent = 'Show Hint (Level 1)';
+        showHintBtn.disabled = false;
+        showHintBtn.classList.remove('hint-locked');
+        // Stop the countdown since all hints are revealed
+        stopHintCountdown();
     }
 });
 
