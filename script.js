@@ -932,7 +932,7 @@ closeHelpBtn.addEventListener('click', () => {
     helpModal.style.display = 'none';
 });
 
-// Hint Button — cycles through hint levels
+// Hint Button — accumulates hint levels (previous hints stay visible)
 showHintBtn.addEventListener('click', () => {
     const levels = subnetHintEl._hintLevels;
     if (!levels) return;
@@ -944,17 +944,17 @@ showHintBtn.addEventListener('click', () => {
         subnetHintEl.innerHTML = levels[0];
         showHintBtn.textContent = 'More Help (Level 2)';
     } else if (gameState.hintLevel === 0) {
-        // Second click: show level 2
+        // Second click: append level 2
         gameState.hintLevel = 1;
-        subnetHintEl.innerHTML = levels[1];
+        subnetHintEl.innerHTML += '<hr class="hint-divider">' + levels[1];
         showHintBtn.textContent = 'Show Answer (Level 3)';
     } else if (gameState.hintLevel === 1) {
-        // Third click: show level 3
+        // Third click: append level 3
         gameState.hintLevel = 2;
-        subnetHintEl.innerHTML = levels[2];
-        showHintBtn.textContent = 'Hide Hint';
+        subnetHintEl.innerHTML += '<hr class="hint-divider">' + levels[2];
+        showHintBtn.textContent = 'Hide Hints';
     } else {
-        // Fourth click: hide
+        // Fourth click: hide all
         hintContentEl.classList.remove('active');
         gameState.hintLevel = 0;
         showHintBtn.textContent = 'Show Hint (Level 1)';

@@ -609,6 +609,13 @@ kbd {
     background-color: #f2f2f2;
 }
 
+.hint-divider {
+    border: none;
+    border-top: 2px dashed #17a2b8;
+    margin: 15px 0;
+    opacity: 0.4;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
