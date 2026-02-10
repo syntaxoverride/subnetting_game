@@ -24,9 +24,63 @@ const subnetHintEl = document.getElementById('subnet-hint');
 const showHintBtn = document.getElementById('show-hint');
 const hintContentEl = document.getElementById('hint-content');
 const flagContainerEl = document.getElementById('flag-container');
+const flagDisplayEl = document.getElementById('flag-display');
 const scenarioEl = document.getElementById('scenario-text');
 const nextQuestionBtn = document.getElementById('next-question-btn');
 const feedbackDetailEl = document.getElementById('feedback-detail');
+
+// Encrypted flags (AES-256-GCM) — one per difficulty level
+// Format: hex(iv[12] + authTag[16] + ciphertext[...])
+const ENCRYPTED_FLAGS = {
+    beginner:     'fe78b0eb07ea1fdcfa1cf9196006a385142e8d2ec657cd0d79945112fe7f30b9f956f1233a98779fa274611ca07d146c71b4',
+    intermediate: '42a9531db58b435ad91769b6a8a1b6a78cf3bda9bd1463f178c1604bb6f0a55a906876c9793e1bf157a99389403f2d2f4904aed7',
+    advanced:     '30f4caa620b4b3b6761bafeedccffec97ef35c5dd4592b3904620db3f67a518625260f26edb2ed205b09587a13e42e7ac050e40f31489580'
+};
+const FLAG_SALT = 'subnet-challenge-2024';
+
+// Decrypt flag using Web Crypto API (AES-256-GCM + PBKDF2 key derivation)
+async function decryptFlag(difficulty) {
+    try {
+        const hexStr = ENCRYPTED_FLAGS[difficulty];
+        if (!hexStr) return null;
+
+        // Parse hex to Uint8Array
+        const data = new Uint8Array(hexStr.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+        const iv = data.slice(0, 12);
+        const authTag = data.slice(12, 28);
+        const ciphertext = data.slice(28);
+
+        // Combine ciphertext + authTag (Web Crypto expects them concatenated)
+        const encryptedWithTag = new Uint8Array(ciphertext.length + authTag.length);
+        encryptedWithTag.set(ciphertext);
+        encryptedWithTag.set(authTag, ciphertext.length);
+
+        // Derive key via PBKDF2
+        const encoder = new TextEncoder();
+        const passphrase = 'net-' + difficulty + '-flag';
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw', encoder.encode(passphrase), 'PBKDF2', false, ['deriveKey']
+        );
+        const key = await crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: encoder.encode(FLAG_SALT), iterations: 100000, hash: 'SHA-256' },
+            keyMaterial,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['decrypt']
+        );
+
+        // Decrypt
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            key,
+            encryptedWithTag
+        );
+
+        return new TextDecoder().decode(decrypted);
+    } catch (e) {
+        return null;
+    }
+}
 
 // Game state
 let gameState = {
@@ -638,6 +692,7 @@ function startGame(difficulty) {
 
     // Hide the flag from any previous game
     flagContainerEl.classList.remove('active');
+    if (flagDisplayEl) flagDisplayEl.textContent = '';
 
     difficultyBtns.forEach(btn => btn.classList.remove('active'));
     document.getElementById(difficulty).classList.add('active');
@@ -978,7 +1033,15 @@ function endGame() {
     difficultyBtns.forEach(btn => btn.classList.remove('active'));
 
     if (gameState.currentQuestion >= gameState.totalQuestions) {
-        flagContainerEl.classList.add('active');
+        // Decrypt and display the difficulty-specific flag
+        decryptFlag(gameState.currentDifficulty).then(flag => {
+            if (flag && flagDisplayEl) {
+                flagDisplayEl.textContent = flag;
+            } else if (flagDisplayEl) {
+                flagDisplayEl.textContent = 'Flag decryption failed. Contact your instructor.';
+            }
+            flagContainerEl.classList.add('active');
+        });
     }
 }
 
