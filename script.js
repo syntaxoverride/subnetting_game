@@ -440,22 +440,30 @@ function generateQuestion(difficulty) {
 
     switch (difficulty) {
         case 'beginner':
-            // Beginner: /24 to /28 subnets (small, manageable numbers)
+            // Beginner: /24 to /28 — familiar private IPs, moderate host counts
             requiredHosts = pickHostCount([5, 6, 8, 10, 12, 14, 20, 25, 30, 50, 55, 60, 80, 100, 120, 150, 200]);
             baseIp = beginnerIps[Math.floor(Math.random() * beginnerIps.length)];
             break;
         case 'intermediate':
-            requiredHosts = pickHostCount([25, 30, 45, 60, 80, 100, 150, 200, 300, 400, 500, 750, 1000, 2000, 3000, 4000, 6000, 8000]);
+            // Intermediate: /24 to /29 — random IPs, wider variety of host counts
+            requiredHosts = pickHostCount([4, 6, 8, 10, 14, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200]);
             baseIp = generateRandomIpv4();
             break;
         case 'advanced':
-            requiredHosts = pickHostCount([50, 100, 200, 400, 500, 1000, 2000, 4000, 8000, 12000, 16000, 25000, 32000, 50000, 65000, 100000]);
+            // Advanced: /24 to /30 — random IPs, includes tight subnets requiring precision
+            requiredHosts = pickHostCount([2, 4, 5, 6, 8, 10, 14, 20, 25, 30, 50, 80, 100, 150, 200]);
             baseIp = generateRandomIpv4();
             break;
     }
 
     // Derive the correct CIDR prefix from the host requirement
-    const cidrPrefix = getRequiredCidrPrefix(requiredHosts);
+    let cidrPrefix = getRequiredCidrPrefix(requiredHosts);
+
+    // Guard: ensure no question uses a prefix below /24 (max 254 usable hosts)
+    if (cidrPrefix < 24) {
+        requiredHosts = 200;
+        cidrPrefix = getRequiredCidrPrefix(requiredHosts);
+    }
 
     // BUG-07 FIX: Never generate /31 or /32 — they have no usable host range
     // This is guaranteed by our host count arrays (minimum 6 hosts → /29 at smallest)
