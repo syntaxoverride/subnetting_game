@@ -262,15 +262,9 @@ The `.verify-panel` class is styled but never used in `index.html`. This is dead
 
 ---
 
-### UX-04: The game flag is visible in page source
+### UX-04: The game flag is visible in page source — **RESOLVED**
 
-**File:** `index.html:77`
-
-```html
-<div class="flag">ICS{Subn3tt1ng_M4st3r_Arch1t3ct}</div>
-```
-
-The flag `ICS{Subn3tt1ng_M4st3r_Arch1t3ct}` is hardcoded in the HTML and visible via View Source or DevTools, regardless of whether the student completes the game. If the flag is meant as a reward/achievement, it should not be trivially accessible.
+**Status:** Fixed. Flags are now AES-256-GCM encrypted with PBKDF2 key derivation. Three difficulty-specific flags are stored as encrypted hex blobs in `script.js` and decrypted via the Web Crypto API only upon game completion. No plaintext flags exist in the source.
 
 ---
 
