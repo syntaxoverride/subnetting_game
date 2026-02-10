@@ -708,6 +708,10 @@ function checkAnswers() {
     let feedbackMessages = [];
     let correctCount = 0;
     let totalChecked = 2; // always check first and last
+    const diff = gameState.currentDifficulty;
+    const isBeginner = (diff === 'beginner');
+    const hostBits = 32 - gameState.correctCidrPrefix;
+    const blockSize = Math.pow(2, hostBits);
 
     // Check first usable IP (2 points)
     if (firstUsable === gameState.correctFirstUsable) {
@@ -718,7 +722,12 @@ function checkAnswers() {
     } else {
         firstUsableInput.style.borderColor = '#dc3545';
         firstUsableInput.style.backgroundColor = '#fff0f0';
-        feedbackMessages.push({ field: 'First Usable IP', yours: firstUsable, correct: gameState.correctFirstUsable });
+        feedbackMessages.push({
+            field: 'First Usable IP',
+            yours: firstUsable,
+            correct: gameState.correctFirstUsable,
+            hint: `The first usable IP is always the Network IP + 1. Find the network address first, then add 1 to the last octet.`
+        });
     }
 
     // Check last usable IP (2 points)
@@ -730,7 +739,12 @@ function checkAnswers() {
     } else {
         lastUsableInput.style.borderColor = '#dc3545';
         lastUsableInput.style.backgroundColor = '#fff0f0';
-        feedbackMessages.push({ field: 'Last Usable IP', yours: lastUsable, correct: gameState.correctLastUsable });
+        feedbackMessages.push({
+            field: 'Last Usable IP',
+            yours: lastUsable,
+            correct: gameState.correctLastUsable,
+            hint: `The last usable IP is always the Broadcast IP \u2212 1. Find the broadcast address first, then subtract 1 from the last octet.`
+        });
     }
 
     // Check network IP if provided (1 point)
@@ -745,7 +759,12 @@ function checkAnswers() {
         } else {
             networkIpInput.style.borderColor = '#dc3545';
             networkIpInput.style.backgroundColor = '#fff0f0';
-            feedbackMessages.push({ field: 'Network IP', yours: networkIp, correct: gameState.correctNetworkIp });
+            feedbackMessages.push({
+                field: 'Network IP',
+                yours: networkIp,
+                correct: gameState.correctNetworkIp,
+                hint: `The Network IP has all host bits set to 0. For a /${gameState.correctCidrPrefix}, the block size is ${blockSize}. Find which multiple of ${blockSize} your IP falls into.`
+            });
         }
     }
 
@@ -761,7 +780,12 @@ function checkAnswers() {
         } else {
             broadcastIpInput.style.borderColor = '#dc3545';
             broadcastIpInput.style.backgroundColor = '#fff0f0';
-            feedbackMessages.push({ field: 'Broadcast IP', yours: broadcastIp, correct: gameState.correctBroadcastIp });
+            feedbackMessages.push({
+                field: 'Broadcast IP',
+                yours: broadcastIp,
+                correct: gameState.correctBroadcastIp,
+                hint: `The Broadcast IP has all host bits set to 1. For a /${gameState.correctCidrPrefix}, it's the Network IP + ${blockSize - 1} (block size ${blockSize} minus 1).`
+            });
         }
     }
 
@@ -776,38 +800,74 @@ function checkAnswers() {
             displayStatus(`Correct! ${correctCount}/${totalChecked} fields right. +${points}/${maxPossible} points (fill in all 4 fields for max points!)`, 'green');
         }
     } else {
-        displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the corrections below.`, 'orange');
+        if (isBeginner) {
+            displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the corrections below.`, 'orange');
+        } else {
+            displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the hints below and try to work out the right answer.`, 'orange');
+        }
     }
 
     // Show detailed feedback panel
     if (feedbackDetailEl) {
         let html = '';
         if (feedbackMessages.length > 0) {
-            html += '<div class="feedback-corrections">';
-            html += '<strong>Corrections:</strong><br>';
-            for (const fb of feedbackMessages) {
-                html += `<div class="feedback-row">`;
-                html += `<span class="feedback-label">${fb.field}:</span> `;
-                html += `<span class="feedback-wrong">Your answer: ${fb.yours}</span> → `;
-                html += `<span class="feedback-correct">Correct: ${fb.correct}</span>`;
-                html += `</div>`;
+            if (isBeginner) {
+                // Beginner: Show the correct answers directly to help them learn
+                html += '<div class="feedback-corrections">';
+                html += '<strong>Corrections:</strong><br>';
+                for (const fb of feedbackMessages) {
+                    html += `<div class="feedback-row">`;
+                    html += `<span class="feedback-label">${fb.field}:</span> `;
+                    html += `<span class="feedback-wrong">Your answer: ${fb.yours}</span> &rarr; `;
+                    html += `<span class="feedback-correct">Correct: ${fb.correct}</span>`;
+                    html += `</div>`;
+                }
+                html += '</div>';
+            } else {
+                // Intermediate & Advanced: Show contextual hints, NOT the answers
+                html += '<div class="feedback-corrections feedback-hints-mode">';
+                html += '<strong>Hints for incorrect fields:</strong><br>';
+                for (const fb of feedbackMessages) {
+                    html += `<div class="feedback-row feedback-hint-row">`;
+                    html += `<span class="feedback-label">${fb.field}:</span> `;
+                    html += `<span class="feedback-wrong">Your answer: ${fb.yours}</span> &mdash; `;
+                    html += `<span class="feedback-hint">${fb.hint}</span>`;
+                    html += `</div>`;
+                }
+                html += '</div>';
             }
-            html += '</div>';
         }
 
-        // Always show the full solution breakdown after answering
-        html += '<div class="feedback-explanation">';
-        html += `<strong>Solution breakdown for /${gameState.correctCidrPrefix}:</strong><br>`;
-        html += `<table class="subnet-table">
-            <tr><th>Field</th><th>Value</th></tr>
-            <tr><td>Network IP</td><td>${gameState.correctNetworkIp}</td></tr>
-            <tr><td>First Usable</td><td>${gameState.correctFirstUsable}</td></tr>
-            <tr><td>Last Usable</td><td>${gameState.correctLastUsable}</td></tr>
-            <tr><td>Broadcast</td><td>${gameState.correctBroadcastIp}</td></tr>
-            <tr><td>Subnet Mask</td><td>${gameState.correctSubnetMask}</td></tr>
-            <tr><td>Usable Hosts</td><td>${(Math.pow(2, 32 - gameState.correctCidrPrefix) - 2).toLocaleString()}</td></tr>
-        </table>`;
-        html += '</div>';
+        if (isBeginner) {
+            // Beginner: Always show the full solution breakdown to reinforce learning
+            html += '<div class="feedback-explanation">';
+            html += `<strong>Solution breakdown for /${gameState.correctCidrPrefix}:</strong><br>`;
+            html += `<table class="subnet-table">
+                <tr><th>Field</th><th>Value</th></tr>
+                <tr><td>Network IP</td><td>${gameState.correctNetworkIp}</td></tr>
+                <tr><td>First Usable</td><td>${gameState.correctFirstUsable}</td></tr>
+                <tr><td>Last Usable</td><td>${gameState.correctLastUsable}</td></tr>
+                <tr><td>Broadcast</td><td>${gameState.correctBroadcastIp}</td></tr>
+                <tr><td>Subnet Mask</td><td>${gameState.correctSubnetMask}</td></tr>
+                <tr><td>Usable Hosts</td><td>${(Math.pow(2, 32 - gameState.correctCidrPrefix) - 2).toLocaleString()}</td></tr>
+            </table>`;
+            html += '</div>';
+        } else if (feedbackMessages.length === 0) {
+            // Intermediate/Advanced with all correct: show breakdown as a reward
+            html += '<div class="feedback-explanation">';
+            html += `<strong>Solution breakdown for /${gameState.correctCidrPrefix}:</strong><br>`;
+            html += `<table class="subnet-table">
+                <tr><th>Field</th><th>Value</th></tr>
+                <tr><td>Network IP</td><td>${gameState.correctNetworkIp}</td></tr>
+                <tr><td>First Usable</td><td>${gameState.correctFirstUsable}</td></tr>
+                <tr><td>Last Usable</td><td>${gameState.correctLastUsable}</td></tr>
+                <tr><td>Broadcast</td><td>${gameState.correctBroadcastIp}</td></tr>
+                <tr><td>Subnet Mask</td><td>${gameState.correctSubnetMask}</td></tr>
+                <tr><td>Usable Hosts</td><td>${(Math.pow(2, 32 - gameState.correctCidrPrefix) - 2).toLocaleString()}</td></tr>
+            </table>`;
+            html += '</div>';
+        }
+        // Intermediate/Advanced with wrong answers: NO solution breakdown shown
 
         feedbackDetailEl.innerHTML = html;
         feedbackDetailEl.style.display = 'block';

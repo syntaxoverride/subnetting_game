@@ -299,9 +299,39 @@ input[type="text"]:focus {
     text-decoration: line-through;
 }
 
+.feedback-hints-mode .feedback-wrong {
+    text-decoration: none;
+    font-weight: bold;
+}
+
 .feedback-correct {
     color: #28a745;
     font-weight: bold;
+}
+
+.feedback-hints-mode {
+    background-color: #e8f4fd;
+    border-color: #3498db;
+}
+
+.feedback-hint-row {
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px dashed #ccc;
+}
+
+.feedback-hint-row:last-child {
+    border-bottom: none;
+}
+
+.feedback-hint {
+    color: #2c3e50;
+    font-style: italic;
+    display: block;
+    margin-top: 4px;
+    padding-left: 12px;
+    border-left: 3px solid #3498db;
+    line-height: 1.5;
 }
 
 .feedback-explanation {
