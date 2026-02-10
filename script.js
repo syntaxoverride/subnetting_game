@@ -86,7 +86,7 @@ async function decryptFlag(difficulty) {
 let gameState = {
     currentDifficulty: null,
     currentQuestion: 0,
-    totalQuestions: 10,
+    totalQuestions: 20,
     requiredHosts: null,
     correctSubnetMask: null,
     correctFirstUsable: null,
@@ -224,7 +224,17 @@ const scenarios = {
         { title: "Startup Office", text: "A tech startup just moved into their first office. They have {hosts} employees who each need a networked device. Their ISP gave them {block}. Plan the subnet." },
         { title: "Security Camera Network", text: "A warehouse needs to put {hosts} IP security cameras on an isolated subnet. The network admin has reserved {block} for this purpose. Calculate the addresses." },
         { title: "Guest Network Segment", text: "A hotel lobby needs a guest network for up to {hosts} devices. The main network admin allocated {block} for guests. Determine the usable address range." },
-        { title: "Printer VLAN", text: "Your company wants to put all {hosts} network printers on their own VLAN. You've been given {block} from the corporate address space. Calculate the subnet." }
+        { title: "Printer VLAN", text: "Your company wants to put all {hosts} network printers on their own VLAN. You've been given {block} from the corporate address space. Calculate the subnet." },
+        { title: "Library Computer Lab", text: "The public library is upgrading its computer lab and needs networking for {hosts} public terminals. The city IT department assigned {block}. Configure the subnet." },
+        { title: "Church AV Network", text: "A church is installing a new audio/video system that requires {hosts} networked devices for streaming and sound. Their ISP provided {block}. Plan the addressing." },
+        { title: "Food Truck Wi-Fi", text: "A food truck festival needs a temporary Wi-Fi network for {hosts} vendor tablets and payment terminals. You have {block} to work with. Subnet it." },
+        { title: "Dental Office Network", text: "A dental practice needs a network for {hosts} devices including X-ray machines, workstations, and a check-in kiosk. They've been assigned {block}. Set up the subnet." },
+        { title: "Pet Clinic System", text: "A veterinary clinic is going digital and needs {hosts} devices on the network for patient records and imaging. The block {block} has been allocated. Calculate the addresses." },
+        { title: "Gym Membership System", text: "A fitness center needs to connect {hosts} check-in scanners, TVs, and office computers. Their network block is {block}. Determine the subnet." },
+        { title: "Apartment Smart Home", text: "A smart apartment building is deploying {hosts} IoT controllers for lighting, HVAC, and door locks. The building's allocated block is {block}. Plan the subnet." },
+        { title: "Photography Studio", text: "A photography studio needs {hosts} devices networked for file transfers between cameras, editing stations, and a NAS. You've got {block}. Calculate the subnet." },
+        { title: "Auto Repair Shop", text: "An auto shop is installing networked diagnostic tools and needs {hosts} IP addresses for scanners and terminals. Their ISP gave them {block}. Figure out the addressing." },
+        { title: "Community Center", text: "A community center needs Wi-Fi for {hosts} devices across a rec room, meeting hall, and front desk. The ISP assigned {block}. Subnet it for them." }
     ],
     intermediate: [
         { title: "Branch Office Deployment", text: "Your company is opening a new branch office that needs {hosts} IP addresses for workstations, printers, and VoIP phones. HQ assigned the address block {block}. Design the subnet." },
@@ -236,7 +246,17 @@ const scenarios = {
         { title: "Multi-Tenant Office", text: "You manage IT for a shared office building. One tenant needs a subnet for {hosts} devices. Their allocation from the building's address space is {block}." },
         { title: "Research Lab Cluster", text: "A university research lab is deploying a computing cluster that needs {hosts} addressable nodes. The IT department provided {block}. Set up the subnet." },
         { title: "Call Center Expansion", text: "A call center is adding {hosts} new VoIP workstations. The telecom team allocated {block} for this expansion. Calculate the addressing scheme." },
-        { title: "Retail Chain Store", text: "A new store location in your retail chain needs {hosts} devices connected. Corporate assigned {block} from the master addressing plan. Subnet it." }
+        { title: "Retail Chain Store", text: "A new store location in your retail chain needs {hosts} devices connected. Corporate assigned {block} from the master addressing plan. Subnet it." },
+        { title: "Hotel Property Network", text: "A mid-size hotel needs {hosts} IP addresses for guest rooms, lobby kiosks, and staff devices. The property management company allocated {block}. Design the subnet." },
+        { title: "School District Office", text: "The school district's administrative building needs {hosts} connections for staff workstations, VoIP phones, and copiers. You've been given {block}. Plan the addressing." },
+        { title: "Airport Terminal Gate", text: "An airport terminal gate area needs {hosts} connections for flight displays, ticketing kiosks, and staff tablets. The airport NOC allocated {block}. Subnet it." },
+        { title: "Convention Center Hall", text: "A convention center exhibition hall is hosting an event requiring {hosts} wired connections for vendor booths. The allocated block is {block}. Calculate the subnet." },
+        { title: "Pharmaceutical Lab", text: "A pharmaceutical testing lab needs {hosts} network connections for lab instruments, data loggers, and workstations. The corporate IT team provided {block}." },
+        { title: "TV Station Newsroom", text: "A local TV station's newsroom needs {hosts} connections for editing bays, teleprompters, and production systems. Engineering assigned {block}. Configure the subnet." },
+        { title: "Shipping Port Operations", text: "A shipping port needs {hosts} IP addresses for crane controllers, container trackers, and dispatch terminals. The port authority's block is {block}." },
+        { title: "Theme Park Ride Controls", text: "A theme park is networking {hosts} ride control systems, safety monitors, and maintenance tablets. Their operations block is {block}. Subnet it." },
+        { title: "Law Enforcement Precinct", text: "A police precinct needs {hosts} network connections for body cam docking stations, MDTs, and dispatch systems. The city assigned {block}." },
+        { title: "Fitness Chain Location", text: "A new gym franchise location needs {hosts} connections for treadmill screens, check-in systems, and security cameras. Corporate provided {block}." }
     ],
     advanced: [
         { title: "ISP Customer Allocation", text: "As an ISP engineer, you need to carve out a subnet for a business customer requiring {hosts} public IP addresses. Your available block is {block}. Calculate the exact allocation." },
@@ -248,7 +268,17 @@ const scenarios = {
         { title: "Carrier Network Planning", text: "As a network planner for a telecom carrier, you need to address {hosts} customer-facing interfaces from {block}. Every address matters at this scale." },
         { title: "Disaster Recovery Site", text: "You're building a DR site that mirrors production with {hosts} addressable systems. The DR network allocation is {block}. Get the subnetting right." },
         { title: "Smart City Infrastructure", text: "A municipality is deploying smart city sensors and controllers. Phase 1 requires {hosts} connected devices using the block {block}." },
-        { title: "Financial Trading Floor", text: "A trading firm needs ultra-low-latency networking for {hosts} trading terminals and matching engines. The network block is {block}. Precision matters." }
+        { title: "Financial Trading Floor", text: "A trading firm needs ultra-low-latency networking for {hosts} trading terminals and matching engines. The network block is {block}. Precision matters." },
+        { title: "Autonomous Vehicle Fleet", text: "A self-driving vehicle company needs {hosts} addresses for their fleet management, telemetry receivers, and edge compute nodes. The allocated block is {block}." },
+        { title: "Satellite Ground Station", text: "A satellite communications provider needs {hosts} addresses for ground station equipment, uplink controllers, and monitoring systems. The NOC assigned {block}." },
+        { title: "National Power Grid SCADA", text: "A power utility is deploying SCADA systems across substations requiring {hosts} addressable endpoints. The OT security team allocated {block}. Precision is critical." },
+        { title: "Submarine Cable Landing", text: "A subsea cable operator needs {hosts} addresses for landing station equipment, optical amplifiers, and management systems. Your allocation is {block}." },
+        { title: "Military Base Network", text: "A military installation requires {hosts} IP addresses for a classified enclave spanning operations, intelligence, and logistics. DISA provided {block}." },
+        { title: "Hyperscale Data Center", text: "A hyperscale cloud provider is commissioning a new data hall requiring {hosts} addresses for bare-metal servers and top-of-rack switches. Your block is {block}." },
+        { title: "5G Core Network", text: "A mobile carrier is deploying 5G core network functions requiring {hosts} addresses for UPF, AMF, and SMF instances. The IPAM team allocated {block}." },
+        { title: "Stock Exchange Infrastructure", text: "A stock exchange needs {hosts} addresses for matching engines, market data feeds, and co-location racks. The network block is {block}. Zero room for error." },
+        { title: "Space Launch Facility", text: "A launch facility needs {hosts} addresses for range safety systems, telemetry receivers, and mission control consoles. Range engineering assigned {block}." },
+        { title: "Blockchain Mining Farm", text: "A large-scale mining operation needs {hosts} addresses for ASIC miners, cooling controllers, and monitoring nodes. The data center assigned {block}." }
     ]
 };
 
@@ -401,25 +431,39 @@ function getRequiredCidrPrefix(requiredHosts) {
 function generateQuestion(difficulty) {
     let requiredHosts, baseIp;
 
+    // Beginner IP pool — varied private ranges so students see more than just 192.168.1.x
+    const beginnerIps = [
+        '192.168.1.0', '192.168.10.0', '192.168.50.0', '192.168.100.0', '192.168.200.0',
+        '10.0.1.0', '10.0.10.0', '10.1.0.0', '10.10.0.0', '10.100.0.0',
+        '172.16.1.0', '172.16.10.0', '172.16.50.0', '172.20.0.0', '172.31.0.0'
+    ];
+
     switch (difficulty) {
         case 'beginner':
-            // Beginner: /24 to /28 subnets (small, manageable numbers)
-            // Host counts that map to clean CIDR boundaries: /28=14, /27=30, /26=62, /25=126, /24=254
-            requiredHosts = pickHostCount([6, 10, 14, 20, 25, 50, 60, 100, 120, 200]);
-            baseIp = '192.168.1.0';
+            // Beginner: /24 to /28 — familiar private IPs, moderate host counts
+            requiredHosts = pickHostCount([5, 6, 8, 10, 12, 14, 20, 25, 30, 50, 55, 60, 80, 100, 120, 150, 200]);
+            baseIp = beginnerIps[Math.floor(Math.random() * beginnerIps.length)];
             break;
         case 'intermediate':
-            requiredHosts = pickHostCount([30, 60, 100, 200, 300, 500, 1000, 2000, 4000, 8000]);
+            // Intermediate: /24 to /29 — random IPs, wider variety of host counts
+            requiredHosts = pickHostCount([4, 6, 8, 10, 14, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200]);
             baseIp = generateRandomIpv4();
             break;
         case 'advanced':
-            requiredHosts = pickHostCount([50, 200, 500, 1000, 4000, 8000, 16000, 32000, 65000, 100000]);
+            // Advanced: /24 to /30 — random IPs, includes tight subnets requiring precision
+            requiredHosts = pickHostCount([2, 4, 5, 6, 8, 10, 14, 20, 25, 30, 50, 80, 100, 150, 200]);
             baseIp = generateRandomIpv4();
             break;
     }
 
     // Derive the correct CIDR prefix from the host requirement
-    const cidrPrefix = getRequiredCidrPrefix(requiredHosts);
+    let cidrPrefix = getRequiredCidrPrefix(requiredHosts);
+
+    // Guard: ensure no question uses a prefix below /24 (max 254 usable hosts)
+    if (cidrPrefix < 24) {
+        requiredHosts = 200;
+        cidrPrefix = getRequiredCidrPrefix(requiredHosts);
+    }
 
     // BUG-07 FIX: Never generate /31 or /32 — they have no usable host range
     // This is guaranteed by our host count arrays (minimum 6 hosts → /29 at smallest)
