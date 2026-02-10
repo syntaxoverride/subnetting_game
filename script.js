@@ -708,8 +708,6 @@ function checkAnswers() {
     let feedbackMessages = [];
     let correctCount = 0;
     let totalChecked = 2; // always check first and last
-    const diff = gameState.currentDifficulty;
-    const isBeginner = (diff === 'beginner');
     const hostBits = 32 - gameState.correctCidrPrefix;
     const blockSize = Math.pow(2, hostBits);
 
@@ -800,60 +798,28 @@ function checkAnswers() {
             displayStatus(`Correct! ${correctCount}/${totalChecked} fields right. +${points}/${maxPossible} points (fill in all 4 fields for max points!)`, 'green');
         }
     } else {
-        if (isBeginner) {
-            displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the corrections below.`, 'orange');
-        } else {
-            displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the hints below and try to work out the right answer.`, 'orange');
-        }
+        displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the hints below and try to work out the right answer.`, 'orange');
     }
 
     // Show detailed feedback panel
     if (feedbackDetailEl) {
         let html = '';
         if (feedbackMessages.length > 0) {
-            if (isBeginner) {
-                // Beginner: Show the correct answers directly to help them learn
-                html += '<div class="feedback-corrections">';
-                html += '<strong>Corrections:</strong><br>';
-                for (const fb of feedbackMessages) {
-                    html += `<div class="feedback-row">`;
-                    html += `<span class="feedback-label">${fb.field}:</span> `;
-                    html += `<span class="feedback-wrong">Your answer: ${fb.yours}</span> &rarr; `;
-                    html += `<span class="feedback-correct">Correct: ${fb.correct}</span>`;
-                    html += `</div>`;
-                }
-                html += '</div>';
-            } else {
-                // Intermediate & Advanced: Show contextual hints, NOT the answers
-                html += '<div class="feedback-corrections feedback-hints-mode">';
-                html += '<strong>Hints for incorrect fields:</strong><br>';
-                for (const fb of feedbackMessages) {
-                    html += `<div class="feedback-row feedback-hint-row">`;
-                    html += `<span class="feedback-label">${fb.field}:</span> `;
-                    html += `<span class="feedback-wrong">Your answer: ${fb.yours}</span> &mdash; `;
-                    html += `<span class="feedback-hint">${fb.hint}</span>`;
-                    html += `</div>`;
-                }
-                html += '</div>';
+            // All difficulties: Show contextual hints, NOT the answers
+            html += '<div class="feedback-corrections feedback-hints-mode">';
+            html += '<strong>Hints for incorrect fields:</strong><br>';
+            for (const fb of feedbackMessages) {
+                html += `<div class="feedback-row feedback-hint-row">`;
+                html += `<span class="feedback-label">${fb.field}:</span> `;
+                html += `<span class="feedback-wrong">Your answer: ${fb.yours}</span> &mdash; `;
+                html += `<span class="feedback-hint">${fb.hint}</span>`;
+                html += `</div>`;
             }
+            html += '</div>';
         }
 
-        if (isBeginner) {
-            // Beginner: Always show the full solution breakdown to reinforce learning
-            html += '<div class="feedback-explanation">';
-            html += `<strong>Solution breakdown for /${gameState.correctCidrPrefix}:</strong><br>`;
-            html += `<table class="subnet-table">
-                <tr><th>Field</th><th>Value</th></tr>
-                <tr><td>Network IP</td><td>${gameState.correctNetworkIp}</td></tr>
-                <tr><td>First Usable</td><td>${gameState.correctFirstUsable}</td></tr>
-                <tr><td>Last Usable</td><td>${gameState.correctLastUsable}</td></tr>
-                <tr><td>Broadcast</td><td>${gameState.correctBroadcastIp}</td></tr>
-                <tr><td>Subnet Mask</td><td>${gameState.correctSubnetMask}</td></tr>
-                <tr><td>Usable Hosts</td><td>${(Math.pow(2, 32 - gameState.correctCidrPrefix) - 2).toLocaleString()}</td></tr>
-            </table>`;
-            html += '</div>';
-        } else if (feedbackMessages.length === 0) {
-            // Intermediate/Advanced with all correct: show breakdown as a reward
+        if (feedbackMessages.length === 0) {
+            // All correct: show solution breakdown as a reward
             html += '<div class="feedback-explanation">';
             html += `<strong>Solution breakdown for /${gameState.correctCidrPrefix}:</strong><br>`;
             html += `<table class="subnet-table">
@@ -867,7 +833,7 @@ function checkAnswers() {
             </table>`;
             html += '</div>';
         }
-        // Intermediate/Advanced with wrong answers: NO solution breakdown shown
+        // Wrong answers: NO solution breakdown shown — hints only
 
         feedbackDetailEl.innerHTML = html;
         feedbackDetailEl.style.display = 'block';
