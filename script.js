@@ -11,8 +11,7 @@ const lastUsableInput = document.getElementById('last-usable');
 const allocateBtn = document.getElementById('allocate-btn');
 const networkIpInput = document.getElementById('network-ip');
 const broadcastIpInput = document.getElementById('broadcast-ip');
-const scoreEl = document.getElementById('score');
-const statusMessageEl = document.getElementById('status-message');
+const validationMsgEl = document.getElementById('validation-message');
 const showCidrBtn = document.getElementById('show-cidr');
 const showHelpBtn = document.getElementById('show-help');
 const cidrModal = document.getElementById('cidr-modal');
@@ -32,7 +31,6 @@ const feedbackDetailEl = document.getElementById('feedback-detail');
 // Game state
 let gameState = {
     currentDifficulty: null,
-    score: 0,
     currentQuestion: 0,
     totalQuestions: 10,
     requiredHosts: null,
@@ -304,14 +302,19 @@ function updateProgressBar() {
     progressText.textContent = `Round Progress: ${Math.round(progress)}% (Question ${gameState.currentQuestion} of ${gameState.totalQuestions})`;
 }
 
-function updateScore(points) {
-    gameState.score += points;
-    scoreEl.textContent = gameState.score;
+
+function showValidationError(message) {
+    if (validationMsgEl) {
+        validationMsgEl.textContent = message;
+        validationMsgEl.style.display = 'block';
+    }
 }
 
-function displayStatus(message, color = '#0275d8') {
-    statusMessageEl.textContent = message;
-    statusMessageEl.style.color = color;
+function hideValidationError() {
+    if (validationMsgEl) {
+        validationMsgEl.style.display = 'none';
+        validationMsgEl.textContent = '';
+    }
 }
 
 function resetInputs() {
@@ -512,13 +515,12 @@ function visualizeAddressBlock(networkAddress, cidrPrefix) {
 // ============================================================
 function startGame(difficulty) {
     gameState.currentDifficulty = difficulty;
-    gameState.score = 0;
     gameState.currentQuestion = 0;
     gameState.allocatedSubnets = [];
     gameState.gameActive = true;
     gameState.awaitingNext = false;
 
-    scoreEl.textContent = '0';
+    hideValidationError();
     startMessageEl.style.display = 'none';
     if (feedbackDetailEl) feedbackDetailEl.style.display = 'none';
     if (nextQuestionBtn) nextQuestionBtn.style.display = 'none';
@@ -585,7 +587,7 @@ function nextQuestion() {
     broadcastIpInput.placeholder = 'e.g., 192.168.1.255';
 
     resetInputs();
-    displayStatus('Read the scenario and calculate the subnet addresses.');
+    hideValidationError();
     gameState.hintLevel = 0;
 
     gameState.currentQuestion++;
@@ -671,7 +673,6 @@ function updateHint(question) {
 // ============================================================
 // BUG-02 FIX: Answer checking validates against stored correct
 // answers, not derived from user input.
-// BUG-04 FIX: Scoring awards points only for fields answered.
 // ============================================================
 function checkAnswers() {
     if (gameState.awaitingNext) return;
@@ -682,7 +683,7 @@ function checkAnswers() {
     const broadcastIp = broadcastIpInput.value.trim();
 
     if (!firstUsable || !lastUsable) {
-        displayStatus('Please fill in at least the First Usable and Last Usable IP addresses.', 'red');
+        showValidationError('Please fill in at least the First Usable and Last Usable IP addresses.');
         return;
     }
 
@@ -696,24 +697,21 @@ function checkAnswers() {
 
     for (const field of fieldsToValidate) {
         if (!isValidIpv4(field.value)) {
-            displayStatus(`Invalid IP format for ${field.name}: "${field.value}". Use format like 192.168.1.0`, 'red');
+            showValidationError(`Invalid IP format for ${field.name}: "${field.value}". Use format like 192.168.1.0`);
             field.el.style.borderColor = '#dc3545';
             return;
         }
     }
 
     // Compare against the known correct answers stored in gameState
-    let points = 0;
-    let maxPossible = 4; // base: 2 (first) + 2 (last)
     let feedbackMessages = [];
     let correctCount = 0;
     let totalChecked = 2; // always check first and last
     const hostBits = 32 - gameState.correctCidrPrefix;
     const blockSize = Math.pow(2, hostBits);
 
-    // Check first usable IP (2 points)
+    // Check first usable IP
     if (firstUsable === gameState.correctFirstUsable) {
-        points += 2;
         correctCount++;
         firstUsableInput.style.borderColor = '#28a745';
         firstUsableInput.style.backgroundColor = '#f0fff0';
@@ -723,14 +721,12 @@ function checkAnswers() {
         feedbackMessages.push({
             field: 'First Usable IP',
             yours: firstUsable,
-            correct: gameState.correctFirstUsable,
             hint: `The first usable IP is always the Network IP + 1. Find the network address first, then add 1 to the last octet.`
         });
     }
 
-    // Check last usable IP (2 points)
+    // Check last usable IP
     if (lastUsable === gameState.correctLastUsable) {
-        points += 2;
         correctCount++;
         lastUsableInput.style.borderColor = '#28a745';
         lastUsableInput.style.backgroundColor = '#f0fff0';
@@ -740,17 +736,14 @@ function checkAnswers() {
         feedbackMessages.push({
             field: 'Last Usable IP',
             yours: lastUsable,
-            correct: gameState.correctLastUsable,
             hint: `The last usable IP is always the Broadcast IP \u2212 1. Find the broadcast address first, then subtract 1 from the last octet.`
         });
     }
 
-    // Check network IP if provided (1 point)
+    // Check network IP if provided
     if (networkIp) {
-        maxPossible += 1;
         totalChecked++;
         if (networkIp === gameState.correctNetworkIp) {
-            points += 1;
             correctCount++;
             networkIpInput.style.borderColor = '#28a745';
             networkIpInput.style.backgroundColor = '#f0fff0';
@@ -760,18 +753,15 @@ function checkAnswers() {
             feedbackMessages.push({
                 field: 'Network IP',
                 yours: networkIp,
-                correct: gameState.correctNetworkIp,
                 hint: `The Network IP has all host bits set to 0. For a /${gameState.correctCidrPrefix}, the block size is ${blockSize}. Find which multiple of ${blockSize} your IP falls into.`
             });
         }
     }
 
-    // Check broadcast IP if provided (1 point)
+    // Check broadcast IP if provided
     if (broadcastIp) {
-        maxPossible += 1;
         totalChecked++;
         if (broadcastIp === gameState.correctBroadcastIp) {
-            points += 1;
             correctCount++;
             broadcastIpInput.style.borderColor = '#28a745';
             broadcastIpInput.style.backgroundColor = '#f0fff0';
@@ -781,31 +771,30 @@ function checkAnswers() {
             feedbackMessages.push({
                 field: 'Broadcast IP',
                 yours: broadcastIp,
-                correct: gameState.correctBroadcastIp,
                 hint: `The Broadcast IP has all host bits set to 1. For a /${gameState.correctCidrPrefix}, it's the Network IP + ${blockSize - 1} (block size ${blockSize} minus 1).`
             });
         }
     }
 
-    // BUG-04 FIX: Award exactly the points earned — no special "perfect" override
-    updateScore(points);
-
-    // Build detailed feedback
-    if (feedbackMessages.length === 0) {
-        if (totalChecked === 4) {
-            displayStatus(`Perfect! All ${totalChecked} fields correct. +${points} points`, 'green');
-        } else {
-            displayStatus(`Correct! ${correctCount}/${totalChecked} fields right. +${points}/${maxPossible} points (fill in all 4 fields for max points!)`, 'green');
-        }
-    } else {
-        displayStatus(`${correctCount}/${totalChecked} correct. +${points} points. Review the hints below and try to work out the right answer.`, 'orange');
-    }
+    hideValidationError();
 
     // Show detailed feedback panel
     if (feedbackDetailEl) {
         let html = '';
+
+        // Summary line at the top of the feedback panel
+        if (feedbackMessages.length === 0) {
+            if (totalChecked === 4) {
+                html += `<div class="feedback-summary feedback-success">Perfect! All ${totalChecked} fields correct.</div>`;
+            } else {
+                html += `<div class="feedback-summary feedback-success">Correct! ${correctCount}/${totalChecked} fields right. Fill in all 4 fields for the full challenge!</div>`;
+            }
+        } else {
+            html += `<div class="feedback-summary feedback-partial">${correctCount}/${totalChecked} correct. Review the hints below and try to work out the right answer.</div>`;
+        }
+
         if (feedbackMessages.length > 0) {
-            // All difficulties: Show contextual hints, NOT the answers
+            // Show contextual hints, NOT the answers
             html += '<div class="feedback-corrections feedback-hints-mode">';
             html += '<strong>Hints for incorrect fields:</strong><br>';
             for (const fb of feedbackMessages) {
@@ -833,7 +822,6 @@ function checkAnswers() {
             </table>`;
             html += '</div>';
         }
-        // Wrong answers: NO solution breakdown shown — hints only
 
         feedbackDetailEl.innerHTML = html;
         feedbackDetailEl.style.display = 'block';
@@ -858,26 +846,11 @@ function endGame() {
     gameState.gameActive = false;
     gameState.awaitingNext = false;
 
-    const maxScore = gameState.totalQuestions * 6;
-    const scorePercentage = Math.round((gameState.score / maxScore) * 100);
-
-    let finalMessage, color;
-
-    if (scorePercentage >= 90) {
-        finalMessage = `Outstanding! Final score: ${gameState.score}/${maxScore} (${scorePercentage}%). You've mastered subnetting!`;
-        color = 'green';
-    } else if (scorePercentage >= 70) {
-        finalMessage = `Great work! Final score: ${gameState.score}/${maxScore} (${scorePercentage}%). Solid subnetting skills.`;
-        color = 'blue';
-    } else if (scorePercentage >= 50) {
-        finalMessage = `Good effort! Final score: ${gameState.score}/${maxScore} (${scorePercentage}%). Keep practicing!`;
-        color = 'orange';
-    } else {
-        finalMessage = `Final score: ${gameState.score}/${maxScore} (${scorePercentage}%). Subnetting takes practice — try again!`;
-        color = 'red';
+    // Show completion message in the feedback panel
+    if (feedbackDetailEl) {
+        feedbackDetailEl.innerHTML = `<div class="feedback-summary feedback-success" style="font-size:1.1em;">Challenge complete! You've finished all ${gameState.totalQuestions} questions.</div>`;
+        feedbackDetailEl.style.display = 'block';
     }
-
-    displayStatus(finalMessage, color);
 
     mainAddressEl.textContent = 'N/A';
     requiredHostsEl.textContent = 'N/A';
@@ -888,7 +861,7 @@ function endGame() {
     if (nextQuestionBtn) nextQuestionBtn.style.display = 'none';
 
     progressBar.style.width = '100%';
-    progressText.textContent = `Round Complete! Final Score: ${gameState.score}/${maxScore}`;
+    progressText.textContent = `Round Complete!`;
 
     difficultyBtns.forEach(btn => btn.classList.remove('active'));
 
@@ -914,7 +887,7 @@ allocateBtn.addEventListener('click', () => {
     if (gameState.gameActive) {
         checkAnswers();
     } else {
-        displayStatus('Please select a difficulty level to start the game.', 'red');
+        showValidationError('Please select a difficulty level to start the game.');
     }
 });
 

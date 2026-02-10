@@ -51,28 +51,24 @@
                 <div class="allocate-panel">
                     <h3>IP Address Allocation</h3>
                     <div class="input-group">
-                        <label for="network-ip">Network IP: <span class="label-hint">(+1 bonus point)</span></label>
+                        <label for="network-ip">Network IP:</label>
                         <input type="text" id="network-ip" placeholder="e.g., 192.168.1.0">
                     </div>
                     <div class="input-group">
-                        <label for="first-usable">First Usable IP: <span class="label-hint">(2 points)</span></label>
+                        <label for="first-usable">First Usable IP:</label>
                         <input type="text" id="first-usable" placeholder="e.g., 192.168.1.1">
                     </div>
                     <div class="input-group">
-                        <label for="last-usable">Last Usable IP: <span class="label-hint">(2 points)</span></label>
+                        <label for="last-usable">Last Usable IP:</label>
                         <input type="text" id="last-usable" placeholder="e.g., 192.168.1.254">
                     </div>
                     <div class="input-group">
-                        <label for="broadcast-ip">Broadcast IP: <span class="label-hint">(+1 bonus point)</span></label>
+                        <label for="broadcast-ip">Broadcast IP:</label>
                         <input type="text" id="broadcast-ip" placeholder="e.g., 192.168.1.255">
                     </div>
                 </div>
 
-                <div class="score-panel">
-                    <h3>Score: <span id="score">0</span></h3>
-                    <h3>Status:</h3>
-                    <p id="status-message" class="status-message">Select a difficulty level to begin.</p>
-                </div>
+                <div id="validation-message" class="validation-message" style="display:none;"></div>
 
                 <div id="flag-container" class="flag-container">
                     <div class="flag-content">
