@@ -14,10 +14,11 @@ The game has a solid UI foundation and good educational intent, but contains **s
 
 ## CRITICAL - Game-Breaking Bugs
 
-### BUG-01: `generateRandomIpv4()` references undeclared variable — crashes game
+### BUG-01: `generateRandomIpv4()` references undeclared variable — crashes game — **RESOLVED**
 
 **File:** `script.js:111-118`
 **Severity:** Critical (runtime crash)
+**Status:** Fixed. Variables `first`, `second`, and `third` are now declared with `let` before the `do...while` loop, eliminating the temporal dead zone crash.
 
 ```javascript
 // Line 111-118
@@ -36,10 +37,11 @@ The variable `second` is referenced on line 113 inside the `while` condition, bu
 
 ---
 
-### BUG-02: Answer validation does not check against the correct answer
+### BUG-02: Answer validation does not check against the correct answer — **RESOLVED**
 
 **File:** `script.js:576-659`
 **Severity:** Critical (core game logic broken)
+**Status:** Fixed. `checkAnswers()` now compares user input directly against `gameState.correctFirstUsable`, `gameState.correctLastUsable`, `gameState.correctNetworkIp`, and `gameState.correctBroadcastIp`.
 
 The `checkAnswers()` function **never compares user input against the stored correct answers** (`gameState.correctFirstUsable`, `gameState.correctNetworkIp`, etc.). Instead, it:
 
@@ -63,10 +65,11 @@ const userSubnetInfo = calculateSubnetInfo(possibleNetworkIp, requiredCidrPrefix
 
 ---
 
-### BUG-03: Question generation creates impossible/contradictory questions
+### BUG-03: Question generation creates impossible/contradictory questions — **RESOLVED**
 
 **File:** `script.js:147-183`
 **Severity:** Critical (pedagogical)
+**Status:** Fixed. CIDR prefix is now derived from `requiredHosts` via `getRequiredCidrPrefix()`, ensuring questions are always solvable and internally consistent. All difficulties are capped at /24 minimum (max 254 usable hosts).
 
 `generateQuestion()` picks `cidrPrefix` and `requiredHosts` **independently at random**. The CIDR prefix determines the network shown to the student, while `requiredHosts` is displayed separately. These two values are unrelated.
 
@@ -86,10 +89,11 @@ The hint system partially acknowledges this by showing a "Warning: The main addr
 
 ## HIGH - Logic Errors
 
-### BUG-04: Scoring bug — skipping optional fields awards more points than attempting them
+### BUG-04: Scoring bug — skipping optional fields awards more points than attempting them — **RESOLVED**
 
 **File:** `script.js:600-644`
 **Severity:** High
+**Status:** Fixed. The entire scoring system has been removed. The game is now flag-based — students complete all 20 questions to earn a per-difficulty encrypted flag. No points are tracked.
 
 When `feedbackMessages` is empty (all answered fields are correct), the code unconditionally awards 6 points:
 
@@ -106,10 +110,11 @@ But Network IP and Broadcast IP are optional fields. If a student only fills in 
 
 ---
 
-### BUG-05: Placeholders reveal the correct answers
+### BUG-05: Placeholders reveal the correct answers — **RESOLVED**
 
 **File:** `script.js:477-480`
 **Severity:** High (defeats educational purpose)
+**Status:** Fixed. Placeholders now show generic examples (`e.g., 192.168.1.0`) instead of the actual correct answers.
 
 ```javascript
 firstUsableInput.placeholder = `e.g., ${question.firstUsable}`;
@@ -122,10 +127,11 @@ The placeholder text for every input field contains the actual correct answer fo
 
 ---
 
-### BUG-06: Hint reveals the complete solution, not a hint
+### BUG-06: Hint reveals the complete solution, not a hint — **RESOLVED**
 
 **File:** `script.js:554-558`
 **Severity:** High (defeats educational purpose)
+**Status:** Fixed. Hints are now a three-level progressive system: Level 1 gives conceptual guidance, Level 2 shows worked steps without final answers, Level 3 reveals the full solution. Each level is time-gated (1:00, 2:30, 4:00) to encourage independent problem-solving first.
 
 ```javascript
 hint += `• Network address: ${networkAddress}<br>`;
@@ -138,10 +144,11 @@ The "hint" displays all four answers verbatim. A hint should guide the student t
 
 ---
 
-### BUG-07: `/31` generates invalid usable host ranges in Advanced mode
+### BUG-07: `/31` generates invalid usable host ranges in Advanced mode — **RESOLVED**
 
 **File:** `script.js:122-143, 165`
 **Severity:** High
+**Status:** Fixed. Host count arrays are curated to only produce /24 through /30 subnets. A guard in `generateQuestion()` ensures `cidrPrefix >= 24`, preventing /31 and /32 from ever being generated.
 
 Advanced mode can generate `/31` (line 165: range is /8 to /31). For a /31 subnet:
 - `broadcastInt = networkInt + 1`
@@ -154,10 +161,11 @@ Additionally, `usableHosts` = 0 for /31, yet the question still asks the student
 
 ---
 
-### BUG-08: `getRequiredCidrPrefix` is computed but unused in `nextQuestion()`
+### BUG-08: `getRequiredCidrPrefix` is computed but unused in `nextQuestion()` — **RESOLVED**
 
 **File:** `script.js:463`
 **Severity:** Medium (dead code / design confusion)
+**Status:** Fixed. `getRequiredCidrPrefix()` is now the core of question generation — it derives the CIDR prefix from the required host count, ensuring consistency. The dead code in `nextQuestion()` has been removed.
 
 ```javascript
 const requiredCidrPrefix = getRequiredCidrPrefix(question.requiredHosts);
@@ -170,9 +178,10 @@ This suggests the developer intended to use `requiredCidrPrefix` to adjust the q
 
 ## MEDIUM - Pedagogical / Accuracy Issues
 
-### PED-01: CIDR reference table mislabels `192.168.0.0/16` as "Private Class B"
+### PED-01: CIDR reference table mislabels `192.168.0.0/16` as "Private Class B" — **RESOLVED**
 
 **File:** `script.js:263`
+**Status:** Fixed. Label corrected to "Private — RFC 1918, Class C addresses, /16 block".
 
 ```javascript
 subnets.push("192.168.0.0/16 (Private Class B)");
@@ -184,9 +193,10 @@ subnets.push("192.168.0.0/16 (Private Class B)");
 
 ---
 
-### PED-02: CIDR reference `/8` examples include non-standard networks
+### PED-02: CIDR reference `/8` examples include non-standard networks — **RESOLVED**
 
 **File:** `script.js:256-258`
+**Status:** Fixed. /8 examples now show `10.0.0.0/8 (Private — RFC 1918)`, `44.0.0.0/8 (AMPRNet)`, and `100.0.0.0/8`. Misleading 172.0.0.0/8 and 192.0.0.0/8 entries removed.
 
 ```javascript
 subnets.push("10.0.0.0/8 (Private Class A)");   // Correct
@@ -198,9 +208,10 @@ subnets.push("192.0.0.0/8");                      // Misleading
 
 ---
 
-### PED-03: "Boundary" column in hint table is unexplained
+### PED-03: "Boundary" column in hint table is unexplained — **RESOLVED**
 
 **File:** `script.js:521-529`
+**Status:** Fixed. The old hint table with the unexplained "Boundary" column has been replaced by a three-level hint system with a clear "Block Size" column that is labeled and explained in context.
 
 The hint's subnet reference table includes a "Boundary" column with values (1, 128, 64, 32, 16, 8, 4). This represents the block size / network increment in the fourth octet, but:
 - The term "Boundary" is never defined anywhere in the game
@@ -209,9 +220,10 @@ The hint's subnet reference table includes a "Boundary" column with values (1, 1
 
 ---
 
-### PED-04: `/31` and `/32` show "N/A" for usable IPs without explanation
+### PED-04: `/31` and `/32` show "N/A" for usable IPs without explanation — **RESOLVED**
 
 **File:** `script.js:55-56, 77`
+**Status:** Fixed. /32 now displays "1 address (host route)" and /31 displays "2 addresses (point-to-point, RFC 3021)" in the CIDR reference table.
 
 For /31 and /32, the CIDR table shows "N/A" for usable IPs. Entry-level students should understand **why** these have no usable hosts (network + broadcast consume all addresses). A bare "N/A" doesn't teach this concept. A label like "0 (point-to-point)" for /31 and "0 (host route)" for /32 would be more instructive.
 
@@ -236,23 +248,27 @@ Steps 6 and 7 are in the wrong pedagogical order. Students should learn that the
 
 ## LOW - Quality / UX Issues
 
-### UX-01: No IP address format validation
+### UX-01: No IP address format validation — **RESOLVED**
 
 **File:** `script.js:576-659`
+**Status:** Fixed. Added `isValidIpv4()` function that validates format (4 octets, 0-255, no leading zeros) before answer checking. Invalid entries show a clear error message with the field name and expected format.
 
 The `ipToInt()` function silently accepts malformed input like `"abc"`, `"999.999.999.999"`, or `"192.168.1"`. It won't throw an error — it will produce garbage numbers. The `try/catch` in `checkAnswers()` won't catch this because no exception is thrown. Students who make typos get confusing "wrong answer" feedback instead of "invalid format" guidance.
 
 ---
 
-### UX-02: No keyboard submit (Enter key)
+### UX-02: No keyboard submit (Enter key) — **RESOLVED**
+
+**Status:** Fixed. Enter key now submits the answer or advances to the next question, depending on game state.
 
 Students must click the "Allocate" button to submit. Pressing Enter in an input field does nothing. This is a minor friction point, especially for students typing IP addresses quickly.
 
 ---
 
-### UX-03: CSS references `.verify-panel` class that doesn't exist in HTML
+### UX-03: CSS references `.verify-panel` class that doesn't exist in HTML — **RESOLVED**
 
 **File:** `styles.css:116`
+**Status:** Fixed. Dead CSS classes `.verify-panel` and `.score-panel` have been removed along with the entire scoring UI.
 
 ```css
 .request-panel, .allocate-panel, .verify-panel, .score-panel {
@@ -268,9 +284,10 @@ The `.verify-panel` class is styled but never used in `index.html`. This is dead
 
 ---
 
-### UX-05: 2-second auto-advance is too fast for learning
+### UX-05: 2-second auto-advance is too fast for learning — **RESOLVED**
 
 **File:** `script.js:655`
+**Status:** Fixed. Auto-advance has been replaced with a "Next Question" button. Students now control when to move on, allowing time to review feedback and hints.
 
 ```javascript
 setTimeout(nextQuestion, 2000);
@@ -282,47 +299,44 @@ After submitting an answer, the game auto-advances to the next question after 2 
 
 ## Summary Table
 
-| ID | Severity | Category | Summary |
-|---|---|---|---|
-| BUG-01 | **Critical** | Runtime | `second` used before declaration — crashes Intermediate/Advanced |
-| BUG-02 | **Critical** | Logic | Answer validation ignores stored correct answers |
-| BUG-03 | **Critical** | Logic | CIDR and required hosts are independent — creates impossible questions |
-| BUG-04 | **High** | Logic | Skipping optional fields gives maximum score |
-| BUG-05 | **High** | Pedagogy | Placeholders contain the correct answers |
-| BUG-06 | **High** | Pedagogy | Hint shows complete solution instead of guidance |
-| BUG-07 | **High** | Logic | /31 subnets produce inverted usable ranges |
-| BUG-08 | **Medium** | Dead Code | `requiredCidrPrefix` computed but unused in `nextQuestion()` |
-| PED-01 | **Medium** | Accuracy | 192.168.0.0/16 mislabeled as "Class B" |
-| PED-02 | **Medium** | Accuracy | /8 examples include non-standard networks |
-| PED-03 | **Medium** | Pedagogy | "Boundary" column unexplained |
-| PED-04 | **Medium** | Pedagogy | /31 and /32 show "N/A" without explanation |
-| PED-05 | **Low** | Pedagogy | Help modal step ordering |
-| UX-01 | **Low** | UX | No IP format validation |
-| UX-02 | **Low** | UX | No Enter key support |
-| UX-03 | **Low** | Quality | Dead CSS class `.verify-panel` |
-| UX-04 | **Low** | Security | Flag visible in HTML source |
-| UX-05 | **Low** | UX | 2-second auto-advance too fast for learning |
+| ID | Severity | Category | Summary | Status |
+|---|---|---|---|---|
+| BUG-01 | **Critical** | Runtime | `second` used before declaration — crashes Intermediate/Advanced | **RESOLVED** |
+| BUG-02 | **Critical** | Logic | Answer validation ignores stored correct answers | **RESOLVED** |
+| BUG-03 | **Critical** | Logic | CIDR and required hosts are independent — creates impossible questions | **RESOLVED** |
+| BUG-04 | **High** | Logic | Skipping optional fields gives maximum score | **RESOLVED** |
+| BUG-05 | **High** | Pedagogy | Placeholders contain the correct answers | **RESOLVED** |
+| BUG-06 | **High** | Pedagogy | Hint shows complete solution instead of guidance | **RESOLVED** |
+| BUG-07 | **High** | Logic | /31 subnets produce inverted usable ranges | **RESOLVED** |
+| BUG-08 | **Medium** | Dead Code | `requiredCidrPrefix` computed but unused in `nextQuestion()` | **RESOLVED** |
+| PED-01 | **Medium** | Accuracy | 192.168.0.0/16 mislabeled as "Class B" | **RESOLVED** |
+| PED-02 | **Medium** | Accuracy | /8 examples include non-standard networks | **RESOLVED** |
+| PED-03 | **Medium** | Pedagogy | "Boundary" column unexplained | **RESOLVED** |
+| PED-04 | **Medium** | Pedagogy | /31 and /32 show "N/A" without explanation | **RESOLVED** |
+| PED-05 | **Low** | Pedagogy | Help modal step ordering | Open |
+| UX-01 | **Low** | UX | No IP format validation | **RESOLVED** |
+| UX-02 | **Low** | UX | No Enter key support | **RESOLVED** |
+| UX-03 | **Low** | Quality | Dead CSS class `.verify-panel` | **RESOLVED** |
+| UX-04 | **Low** | Security | Flag visible in HTML source | **RESOLVED** |
+| UX-05 | **Low** | UX | 2-second auto-advance too fast for learning | **RESOLVED** |
 
 ---
 
-## Recommended Fix Priority
+## Resolution Summary
 
-**Phase 1 — Must fix (game is non-functional without these):**
-1. Fix `generateRandomIpv4()` variable ordering (BUG-01)
-2. Redesign question generation so CIDR prefix and required hosts are consistent (BUG-03)
-3. Rewrite `checkAnswers()` to validate against known-correct answers from `gameState` (BUG-02)
-4. Remove answers from placeholders (BUG-05)
-5. Fix /31 edge case — either exclude /31 from generation or handle it properly (BUG-07)
+**All 18 issues identified in this audit have been resolved**, with the exception of PED-05 (help modal step ordering — low severity, cosmetic).
 
-**Phase 2 — Should fix (game works but teaches incorrectly):**
-6. Fix scoring logic for optional fields (BUG-04)
-7. Replace full-solution hint with guided steps (BUG-06)
-8. Correct "Class B" labeling for 192.168.0.0/16 (PED-01)
-9. Fix /8 example networks (PED-02)
-10. Add explanation for "Boundary" column or remove it (PED-03)
+### Additional enhancements made during remediation:
+- Scoring system removed entirely; game is now flag-based completion
+- Score/Status UI panel removed for cleaner interface
+- Three-level time-gated hint system (1:00, 2:30, 4:00 unlock delays)
+- Per-difficulty encrypted flags (AES-256-GCM + PBKDF2 via Web Crypto API)
+- Contextual feedback with hints instead of answer reveals for wrong answers
+- "Next Question" button replaces auto-advance for self-paced learning
+- 20 challenges per round (up from 10) with 21 unique scenarios per difficulty
+- Varied IP address ranges for Beginner (10.x, 172.16.x, 192.168.x instead of only 192.168.1.0)
+- All difficulties capped at /24 minimum CIDR prefix
+- Immersive real-world scenarios for every question
 
-**Phase 3 — Nice to fix (polish):**
-11. Add IP format validation with clear error messages (UX-01)
-12. Add Enter key submit handler (UX-02)
-13. Increase auto-advance delay or add "Next" button (UX-05)
-14. Clean up dead CSS / unused variables (UX-03, BUG-08)
+### Remaining open item:
+- **PED-05** (Low): Help modal step ordering — broadcast and last usable steps could be reordered for clarity
