@@ -76,6 +76,18 @@ h1 {
     transition: width 0.3s ease-in-out;
 }
 
+/* Scenario box */
+.scenario-box {
+    background-color: #e8f4fd;
+    border-left: 4px solid #007bff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 0 5px 5px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+}
+
 .game-panel {
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -113,7 +125,7 @@ h1 {
     gap: 20px;
 }
 
-.request-panel, .allocate-panel, .verify-panel, .score-panel {
+.request-panel, .allocate-panel, .score-panel {
     padding: 15px;
     background-color: #f9f9f9;
     border-radius: 5px;
@@ -181,11 +193,24 @@ label {
     margin-bottom: 5px;
 }
 
+.label-hint {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: normal;
+}
+
 input[type="text"] {
     width: 100%;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
 }
 
 .action-btn {
@@ -207,11 +232,15 @@ input[type="text"] {
 .allocate-action {
     padding: 0 20px 20px;
     text-align: center;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
 }
 
 .allocate-action .action-btn {
     max-width: 300px;
-    margin: 20px auto 0;
+    margin: 20px 0 0;
     background-color: #28a745;
     font-size: 16px;
     font-weight: bold;
@@ -219,6 +248,66 @@ input[type="text"] {
 
 .allocate-action .action-btn:hover {
     background-color: #218838;
+}
+
+.next-btn {
+    max-width: 300px;
+    margin: 20px 0 0;
+    padding: 10px 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.next-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Feedback detail panel */
+.feedback-detail {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.feedback-corrections {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+}
+
+.feedback-row {
+    margin: 5px 0;
+    padding: 4px 0;
+}
+
+.feedback-label {
+    font-weight: bold;
+}
+
+.feedback-wrong {
+    color: #dc3545;
+    text-decoration: line-through;
+}
+
+.feedback-correct {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.feedback-explanation {
+    padding: 10px;
+    background-color: #e8f4fd;
+    border-radius: 4px;
 }
 
 .reference-btn {
@@ -300,6 +389,30 @@ input[type="text"] {
 
 .help-table th {
     background-color: #f2f2f2;
+}
+
+/* Worked example box in help modal */
+.worked-example {
+    background-color: #f0f7f0;
+    border: 1px solid #c3e6c3;
+    border-left: 4px solid #28a745;
+    border-radius: 0 5px 5px 0;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.worked-example p {
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+
+kbd {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: monospace;
+    font-size: 13px;
 }
 
 .close-help {
@@ -430,24 +543,15 @@ input[type="text"] {
     .game-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .difficulty-selection {
         flex-direction: column;
         align-items: stretch;
     }
-}
 
-.hint-box {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-left: 4px solid #17a2b8;
-    border-radius: 0 4px 4px 0;
-    font-size: 14px;
-}
-
-.hint-box strong {
-    color: #17a2b8;
+    .allocate-action {
+        flex-direction: column;
+    }
 }
 
 .hint-btn {
@@ -508,4 +612,4 @@ input[type="text"] {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-} 
+}
