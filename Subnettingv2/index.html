@@ -26,15 +26,17 @@
 
         <div class="game-panel">
             <div class="scenario-box" id="scenario-text">
-                Select a difficulty level above to begin. In v2, you'll be given an IP address that may be <strong>anywhere within the subnet</strong> &mdash; not necessarily the network address. You must calculate where the subnet actually starts.
+                Select a difficulty level above to begin. This CCNA-aligned challenge covers subnetting, VLSM, route summarization, wildcard masks, and more. Each question tests a different networking skill.
             </div>
 
-            <div class="ip-note" id="ip-note" style="display:none;">
-                The IP shown may NOT be the network address. Apply the subnet mask to find the true network boundary.
+            <div class="question-type-badge" id="question-type-badge" style="display:none;">
+                <span id="question-type-label"></span>
             </div>
+
+            <div class="ip-note" id="ip-note" style="display:none;"></div>
 
             <div class="address-block">
-                <h2>Given IP: <span id="main-address">N/A</span></h2>
+                <h2 id="address-label">Given IP: <span id="main-address">N/A</span></h2>
                 <div id="address-display" class="address-display">
                     <div id="address-visualization" class="address-visualization"></div>
                 </div>
@@ -44,32 +46,18 @@
                 <div class="request-panel">
                     <h3>Current Request:</h3>
                     <p id="start-message">Select difficulty level to start.</p>
-                    <p>Required Hosts: <span id="required-hosts">N/A</span></p>
-                    <p>Subnet Mask: <span id="subnet-mask">N/A</span></p>
+                    <p id="required-hosts-row">Required Hosts: <span id="required-hosts">N/A</span></p>
+                    <p id="subnet-mask-row">Subnet Mask: <span id="subnet-mask">N/A</span></p>
                     <button id="show-hint" class="hint-btn">Show Hint (Level 1)</button>
                     <div id="hint-content" class="hint-content">
                         <p id="subnet-hint">Calculate the subnet that can accommodate the required hosts.</p>
                     </div>
                 </div>
 
-                <div class="allocate-panel">
-                    <h3>IP Address Allocation</h3>
-                    <div class="input-group">
-                        <label for="network-ip">Network IP:</label>
-                        <input type="text" id="network-ip" placeholder="e.g., 172.16.40.0">
-                    </div>
-                    <div class="input-group">
-                        <label for="first-usable">First Usable IP:</label>
-                        <input type="text" id="first-usable" placeholder="e.g., 172.16.40.1">
-                    </div>
-                    <div class="input-group">
-                        <label for="last-usable">Last Usable IP:</label>
-                        <input type="text" id="last-usable" placeholder="e.g., 172.16.47.254">
-                    </div>
-                    <div class="input-group">
-                        <label for="broadcast-ip">Broadcast IP:</label>
-                        <input type="text" id="broadcast-ip" placeholder="e.g., 172.16.47.255">
-                    </div>
+                <div class="allocate-panel" id="answer-area">
+                    <!-- Dynamic answer inputs rendered by JS based on question type -->
+                    <h3 id="answer-panel-title">Your Answer</h3>
+                    <div id="dynamic-inputs"></div>
                 </div>
 
                 <div id="validation-message" class="validation-message" style="display:none;"></div>
@@ -77,7 +65,7 @@
                 <div id="flag-container" class="flag-container">
                     <div class="flag-content">
                         <h3>Congratulations!</h3>
-                        <p>You've conquered v2!</p>
+                        <p>You've conquered the CCNA Challenge!</p>
                         <div id="flag-display" class="flag"></div>
                     </div>
                 </div>
@@ -86,7 +74,7 @@
             <div id="feedback-detail" class="feedback-detail" style="display:none;"></div>
 
             <div class="allocate-action">
-                <button id="allocate-btn" class="action-btn">Allocate</button>
+                <button id="allocate-btn" class="action-btn">Submit Answer</button>
                 <button id="next-question-btn" class="next-btn" style="display:none;">Next Question &rarr;</button>
             </div>
         </div>
@@ -120,49 +108,87 @@
         <div id="help-modal" class="modal">
             <div class="modal-content">
                 <span class="close-help">&times;</span>
-                <h2>Advanced Subnetting Help (v2)</h2>
+                <h2>CCNA Subnetting Help (v2)</h2>
                 <div class="help-content">
-                    <h3>What's Different in v2?</h3>
-                    <p>In v2, the IP address shown is <strong>not necessarily the network address</strong>. It could be any host within the subnet. Your first job is to apply the subnet mask to find the actual network address, then derive all other values from there.</p>
-                    <p>This means you must master <strong>cross-octet subnetting</strong> &mdash; cases where the subnet boundary falls in the middle of an octet (like /21, /19, /13).</p>
+                    <h3>CCNA Topics Covered</h3>
+                    <p>This game tests six key subnetting skills from the CCNA 200-301 exam:</p>
+                    <table class="help-table">
+                        <tr><th>Question Type</th><th>Skill Tested</th><th>Difficulty</th></tr>
+                        <tr><td>Subnet Calculation</td><td>Given IP/CIDR, find network, broadcast, usable range</td><td>All levels</td></tr>
+                        <tr><td>CIDR &harr; Mask Conversion</td><td>Convert between /prefix and dotted-decimal mask</td><td>Beginner+</td></tr>
+                        <tr><td>Same Subnet?</td><td>Determine if two IPs are on the same subnet</td><td>Beginner+</td></tr>
+                        <tr><td>Wildcard Mask</td><td>Calculate wildcard masks for ACLs and OSPF</td><td>Beginner+</td></tr>
+                        <tr><td>Route Summarization</td><td>Find summary route for contiguous networks</td><td>Intermediate+</td></tr>
+                        <tr><td>VLSM Design</td><td>Allocate variable-length subnets from a block</td><td>Advanced</td></tr>
+                    </table>
 
-                    <h3>Key Concepts</h3>
-                    <ul>
-                        <li><strong>IP Address:</strong> A unique 32-bit number (e.g., 172.16.45.137) that identifies a device.</li>
-                        <li><strong>Subnet Mask:</strong> Tells you which bits are "network" and which are "host".</li>
-                        <li><strong>CIDR Notation:</strong> Shorthand for the mask. /21 = 21 network bits, 11 host bits.</li>
-                        <li><strong>Network Address:</strong> IP with all host bits set to 0. Found by ANDing the IP with the mask.</li>
-                        <li><strong>Broadcast Address:</strong> IP with all host bits set to 1.</li>
-                        <li><strong>Cross-Octet Boundary:</strong> When the CIDR prefix doesn't fall on an octet boundary (8, 16, 24), the subnet boundary splits an octet. This is where the real challenge begins.</li>
-                    </ul>
-
-                    <h3>How to Subnet with Non-Boundary IPs</h3>
+                    <h3>1. Subnet Calculation (Cross-Octet)</h3>
+                    <p>The IP shown may be <strong>any host within the subnet</strong>, not the network address. You must apply the mask to find where the subnet starts.</p>
                     <ol>
-                        <li><strong>Identify the "interesting" octet</strong> &mdash; The octet where the prefix boundary falls. For /21, the boundary is in the 3rd octet (bits 17-24).</li>
-                        <li><strong>Calculate the block size in that octet</strong> &mdash; Block size = 2<sup>(8 - remaining bits in that octet)</sup>. For /21: 3 bits remain in the 3rd octet, so block = 2<sup>3</sup> = 8.</li>
-                        <li><strong>Find the network address</strong> &mdash; Round down the "interesting" octet to the nearest multiple of the block size. Everything before is unchanged; everything after becomes 0.</li>
-                        <li><strong>Find the broadcast</strong> &mdash; Network address + block size - 1 in the "interesting" octet, with all lower octets set to 255.</li>
-                        <li><strong>First usable</strong> = Network + 1, <strong>Last usable</strong> = Broadcast - 1.</li>
+                        <li><strong>Identify the "interesting" octet</strong> &mdash; where the CIDR boundary falls.</li>
+                        <li><strong>Calculate block size</strong> in that octet: 2<sup>(8 - bits used in that octet)</sup>.</li>
+                        <li><strong>Round down</strong> the octet value to the nearest multiple of the block size &rarr; Network IP.</li>
+                        <li><strong>Add block size - 1</strong> in that octet, set lower octets to 255 &rarr; Broadcast.</li>
+                        <li>First usable = Network + 1, Last usable = Broadcast - 1.</li>
                     </ol>
-
-                    <h3>Worked Example: Cross-Octet</h3>
                     <div class="worked-example">
-                        <p><strong>Given:</strong> 172.16.45.137/21</p>
-                        <p><strong>Step 1:</strong> /21 means 21 network bits. The boundary falls in octet 3 (bits 17-24). 21 - 16 = 5 bits used in octet 3.</p>
-                        <p><strong>Step 2:</strong> Remaining host bits in octet 3 = 8 - 5 = 3. Block size = 2<sup>3</sup> = 8.</p>
-                        <p><strong>Step 3:</strong> Octet 3 value is 45. Nearest multiple of 8 that is &le; 45: 40 (since 5 &times; 8 = 40). Network = 172.16.<strong>40</strong>.0</p>
-                        <p><strong>Step 4:</strong> Broadcast = 172.16.(40 + 8 - 1).255 = 172.16.<strong>47</strong>.255</p>
-                        <p><strong>Step 5:</strong> First usable = 172.16.40.1, Last usable = 172.16.47.254</p>
-                        <p><strong>Usable hosts:</strong> 2<sup>11</sup> - 2 = 2046</p>
+                        <p><strong>Example:</strong> 172.16.45.137/21</p>
+                        <p>/21 &rarr; 5 bits in 3rd octet &rarr; block size = 2<sup>3</sup> = 8</p>
+                        <p>45 &div; 8 = 5.6 &rarr; round down to 5 &times; 8 = <strong>40</strong></p>
+                        <p>Network: 172.16.40.0 | Broadcast: 172.16.47.255 | Usable: 2046</p>
                     </div>
 
-                    <h3>Tips for v2 Success</h3>
+                    <h3>2. CIDR &harr; Mask Conversion</h3>
+                    <p>Convert between CIDR prefix and dotted-decimal subnet mask.</p>
                     <ul>
-                        <li>Always identify the "interesting" octet first &mdash; that's where the math happens.</li>
-                        <li>The block size tells you how far apart network addresses are in that octet.</li>
-                        <li>For /24 or /25-/30, the interesting octet is the 4th. For /17-/23, it's the 3rd. For /9-/16, it's the 2nd.</li>
-                        <li>Network addresses are always multiples of the block size in the interesting octet.</li>
-                        <li>Use the hint button &mdash; Level 1 guides your thinking, Level 2 shows worked steps, Level 3 reveals the answer.</li>
+                        <li>/24 = 255.255.255.0 (24 ones, 8 zeros)</li>
+                        <li>/20 = 255.255.240.0 (20 ones, 12 zeros)</li>
+                        <li>/27 = 255.255.255.224 (27 ones, 5 zeros)</li>
+                    </ul>
+                    <p><strong>Quick method:</strong> For the "interesting" octet, calculate 256 - 2<sup>(8 - bits in that octet)</sup>.</p>
+
+                    <h3>3. Same Subnet Determination</h3>
+                    <p>AND each IP with the subnet mask. If both results match, the hosts are on the same subnet.</p>
+                    <div class="worked-example">
+                        <p><strong>Are 192.168.1.100 and 192.168.1.200 on the same /26?</strong></p>
+                        <p>/26 mask = 255.255.255.192, block size = 64</p>
+                        <p>100 &div; 64 = 1.56 &rarr; network at .64 | 200 &div; 64 = 3.12 &rarr; network at .192</p>
+                        <p><strong>Different subnets!</strong> (.64 vs .192)</p>
+                    </div>
+
+                    <h3>4. Wildcard Masks</h3>
+                    <p>Wildcard mask = 255.255.255.255 - subnet mask. Used in ACLs and OSPF area configuration.</p>
+                    <ul>
+                        <li>Subnet 255.255.255.0 &rarr; Wildcard 0.0.0.255</li>
+                        <li>Subnet 255.255.240.0 &rarr; Wildcard 0.0.15.255</li>
+                        <li>Subnet 255.255.255.252 &rarr; Wildcard 0.0.0.3</li>
+                    </ul>
+
+                    <h3>5. Route Summarization (Supernetting)</h3>
+                    <p>Find the single summary route that covers all given networks. Convert to binary, find common prefix bits, and create the summary.</p>
+                    <div class="worked-example">
+                        <p><strong>Summarize:</strong> 192.168.0.0/24, 192.168.1.0/24, 192.168.2.0/24, 192.168.3.0/24</p>
+                        <p>Binary 3rd octet: 000000<strong>00</strong>, 000000<strong>01</strong>, 000000<strong>10</strong>, 000000<strong>11</strong></p>
+                        <p>Common bits: first 6 bits match &rarr; /22</p>
+                        <p><strong>Summary: 192.168.0.0/22</strong></p>
+                    </div>
+
+                    <h3>6. VLSM Design</h3>
+                    <p>Allocate subnets of different sizes from one block. <strong>Always allocate largest subnet first</strong> to avoid address waste.</p>
+                    <div class="worked-example">
+                        <p><strong>Given 10.0.0.0/24, allocate:</strong> Dept A (100 hosts), Dept B (50 hosts), Dept C (25 hosts)</p>
+                        <p>Dept A: 100 hosts &rarr; /25 (126 usable) &rarr; 10.0.0.0/25</p>
+                        <p>Dept B: 50 hosts &rarr; /26 (62 usable) &rarr; 10.0.0.128/26</p>
+                        <p>Dept C: 25 hosts &rarr; /27 (30 usable) &rarr; 10.0.0.192/27</p>
+                    </div>
+
+                    <h3>Tips for Success</h3>
+                    <ul>
+                        <li>Read the question type badge carefully &mdash; each type requires different answers.</li>
+                        <li>For subnet calculations, always find the "interesting" octet first.</li>
+                        <li>For VLSM, sort departments by size (largest first) before allocating.</li>
+                        <li>For summarization, convert the changing octet to binary and find where bits diverge.</li>
+                        <li>Use the hint system: Level 1 guides thinking, Level 2 shows steps, Level 3 reveals answers.</li>
                         <li>Press <kbd>Enter</kbd> to submit your answer quickly.</li>
                     </ul>
                 </div>

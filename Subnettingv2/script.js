@@ -435,7 +435,7 @@ function resetInputs() {
     networkIpInput.value = '';
     broadcastIpInput.value = '';
     [firstUsableInput, lastUsableInput, networkIpInput, broadcastIpInput].forEach(input => {
-        input.style.borderColor = '#0f3460';
+        input.style.borderColor = '#ddd';
         input.style.backgroundColor = '';
     });
 }
@@ -542,8 +542,8 @@ function visualizeAddressBlock(givenIp, cidrPrefix) {
         const char = formattedBinary[i];
         const currentBitIndex = i - Math.floor(i / 9);
         if (char === '.') formattedDisplay += '.';
-        else if (currentBitIndex < networkBits) formattedDisplay += `<span style="color: #e94560; font-weight: bold;">${char}</span>`;
-        else formattedDisplay += `<span style="color: #51cf66;">${char}</span>`;
+        else if (currentBitIndex < networkBits) formattedDisplay += `<span style="color: #dc3545; font-weight: bold;">${char}</span>`;
+        else formattedDisplay += `<span style="color: #28a745;">${char}</span>`;
     }
 
     // Identify the "interesting" octet for cross-octet help
@@ -557,8 +557,8 @@ function visualizeAddressBlock(givenIp, cidrPrefix) {
     addressVisualizationEl.innerHTML = `
         <div>${formattedDisplay}</div>
         <div style="font-size: 12px; margin-top: 8px;">
-            <span style="color: #e94560; font-weight: bold;">Network Bits (${networkBits})</span> |
-            <span style="color: #51cf66;">Host Bits (${hostBits})</span>
+            <span style="color: #dc3545; font-weight: bold;">Network Bits (${networkBits})</span> |
+            <span style="color: #28a745;">Host Bits (${hostBits})</span>
         </div>
         <div style="font-size: 12px; margin-top: 4px;">
             ${crossOctetNote} &bull; Usable Hosts: ${usableHosts > 0 ? usableHosts.toLocaleString() : '0'}
@@ -753,7 +753,7 @@ function checkAnswers() {
     for (const field of fieldsToValidate) {
         if (!isValidIpv4(field.value)) {
             showValidationError(`Invalid IP format for ${field.name}: "${field.value}". Use format like 172.16.40.0`);
-            field.el.style.borderColor = '#ff6b6b';
+            field.el.style.borderColor = '#dc3545';
             return;
         }
     }
@@ -776,11 +776,11 @@ function checkAnswers() {
 
     if (firstUsable === gameState.correctFirstUsable) {
         correctCount++;
-        firstUsableInput.style.borderColor = '#51cf66';
-        firstUsableInput.style.backgroundColor = '#0a3d0a';
+        firstUsableInput.style.borderColor = '#28a745';
+        firstUsableInput.style.backgroundColor = '#f0fff0';
     } else {
-        firstUsableInput.style.borderColor = '#ff6b6b';
-        firstUsableInput.style.backgroundColor = '#3d0000';
+        firstUsableInput.style.borderColor = '#dc3545';
+        firstUsableInput.style.backgroundColor = '#fff0f0';
         feedbackMessages.push({
             field: 'First Usable IP',
             yours: firstUsable,
@@ -790,11 +790,11 @@ function checkAnswers() {
 
     if (lastUsable === gameState.correctLastUsable) {
         correctCount++;
-        lastUsableInput.style.borderColor = '#51cf66';
-        lastUsableInput.style.backgroundColor = '#0a3d0a';
+        lastUsableInput.style.borderColor = '#28a745';
+        lastUsableInput.style.backgroundColor = '#f0fff0';
     } else {
-        lastUsableInput.style.borderColor = '#ff6b6b';
-        lastUsableInput.style.backgroundColor = '#3d0000';
+        lastUsableInput.style.borderColor = '#dc3545';
+        lastUsableInput.style.backgroundColor = '#fff0f0';
         feedbackMessages.push({
             field: 'Last Usable IP',
             yours: lastUsable,
@@ -806,11 +806,11 @@ function checkAnswers() {
         totalChecked++;
         if (networkIp === gameState.correctNetworkIp) {
             correctCount++;
-            networkIpInput.style.borderColor = '#51cf66';
-            networkIpInput.style.backgroundColor = '#0a3d0a';
+            networkIpInput.style.borderColor = '#28a745';
+            networkIpInput.style.backgroundColor = '#f0fff0';
         } else {
-            networkIpInput.style.borderColor = '#ff6b6b';
-            networkIpInput.style.backgroundColor = '#3d0000';
+            networkIpInput.style.borderColor = '#dc3545';
+            networkIpInput.style.backgroundColor = '#fff0f0';
             feedbackMessages.push({
                 field: 'Network IP',
                 yours: networkIp,
@@ -823,11 +823,11 @@ function checkAnswers() {
         totalChecked++;
         if (broadcastIp === gameState.correctBroadcastIp) {
             correctCount++;
-            broadcastIpInput.style.borderColor = '#51cf66';
-            broadcastIpInput.style.backgroundColor = '#0a3d0a';
+            broadcastIpInput.style.borderColor = '#28a745';
+            broadcastIpInput.style.backgroundColor = '#f0fff0';
         } else {
-            broadcastIpInput.style.borderColor = '#ff6b6b';
-            broadcastIpInput.style.backgroundColor = '#3d0000';
+            broadcastIpInput.style.borderColor = '#dc3545';
+            broadcastIpInput.style.backgroundColor = '#fff0f0';
             feedbackMessages.push({
                 field: 'Broadcast IP',
                 yours: broadcastIp,
