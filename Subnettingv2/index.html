@@ -33,7 +33,9 @@
                 <span id="question-type-label"></span>
             </div>
 
-            <div class="ip-note" id="ip-note" style="display:none;"></div>
+            <div class="ip-note" id="ip-note" style="display:none;">
+                The IP shown may NOT be the network address. Apply the subnet mask to find the true network boundary.
+            </div>
 
             <div class="address-block">
                 <h2 id="address-label">Given IP: <span id="main-address">N/A</span></h2>
@@ -55,9 +57,25 @@
                 </div>
 
                 <div class="allocate-panel" id="answer-area">
-                    <!-- Dynamic answer inputs rendered by JS based on question type -->
                     <h3 id="answer-panel-title">Your Answer</h3>
-                    <div id="dynamic-inputs"></div>
+                    <div id="dynamic-inputs">
+                        <div class="input-group">
+                            <label for="network-ip">Network IP:</label>
+                            <input type="text" id="network-ip" placeholder="e.g., 172.16.40.0">
+                        </div>
+                        <div class="input-group">
+                            <label for="first-usable">First Usable IP:</label>
+                            <input type="text" id="first-usable" placeholder="e.g., 172.16.40.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="last-usable">Last Usable IP:</label>
+                            <input type="text" id="last-usable" placeholder="e.g., 172.16.47.254">
+                        </div>
+                        <div class="input-group">
+                            <label for="broadcast-ip">Broadcast IP:</label>
+                            <input type="text" id="broadcast-ip" placeholder="e.g., 172.16.47.255">
+                        </div>
+                    </div>
                 </div>
 
                 <div id="validation-message" class="validation-message" style="display:none;"></div>
