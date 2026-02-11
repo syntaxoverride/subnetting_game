@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Architect v2 - Advanced Subnetting</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Network Architect <span class="version-badge">v2</span></h1>
+
+        <div class="difficulty-selection">
+            <span>Choose Difficulty:</span>
+            <button id="beginner" class="difficulty-btn">Beginner</button>
+            <button id="intermediate" class="difficulty-btn">Intermediate</button>
+            <button id="advanced" class="difficulty-btn">Advanced</button>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-text">Round Progress: 0% (Question 0 of 20)</div>
+            <div class="progress-bar">
+                <div class="progress" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="game-panel">
+            <div class="scenario-box" id="scenario-text">
+                Select a difficulty level above to begin. In v2, you'll be given an IP address that may be <strong>anywhere within the subnet</strong> &mdash; not necessarily the network address. You must calculate where the subnet actually starts.
+            </div>
+
+            <div class="ip-note" id="ip-note" style="display:none;">
+                The IP shown may NOT be the network address. Apply the subnet mask to find the true network boundary.
+            </div>
+
+            <div class="address-block">
+                <h2>Given IP: <span id="main-address">N/A</span></h2>
+                <div id="address-display" class="address-display">
+                    <div id="address-visualization" class="address-visualization"></div>
+                </div>
+            </div>
+
+            <div class="game-grid">
+                <div class="request-panel">
+                    <h3>Current Request:</h3>
+                    <p id="start-message">Select difficulty level to start.</p>
+                    <p>Required Hosts: <span id="required-hosts">N/A</span></p>
+                    <p>Subnet Mask: <span id="subnet-mask">N/A</span></p>
+                    <button id="show-hint" class="hint-btn">Show Hint (Level 1)</button>
+                    <div id="hint-content" class="hint-content">
+                        <p id="subnet-hint">Calculate the subnet that can accommodate the required hosts.</p>
+                    </div>
+                </div>
+
+                <div class="allocate-panel">
+                    <h3>IP Address Allocation</h3>
+                    <div class="input-group">
+                        <label for="network-ip">Network IP:</label>
+                        <input type="text" id="network-ip" placeholder="e.g., 172.16.40.0">
+                    </div>
+                    <div class="input-group">
+                        <label for="first-usable">First Usable IP:</label>
+                        <input type="text" id="first-usable" placeholder="e.g., 172.16.40.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="last-usable">Last Usable IP:</label>
+                        <input type="text" id="last-usable" placeholder="e.g., 172.16.47.254">
+                    </div>
+                    <div class="input-group">
+                        <label for="broadcast-ip">Broadcast IP:</label>
+                        <input type="text" id="broadcast-ip" placeholder="e.g., 172.16.47.255">
+                    </div>
+                </div>
+
+                <div id="validation-message" class="validation-message" style="display:none;"></div>
+
+                <div id="flag-container" class="flag-container">
+                    <div class="flag-content">
+                        <h3>Congratulations!</h3>
+                        <p>You've conquered v2!</p>
+                        <div id="flag-display" class="flag"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="feedback-detail" class="feedback-detail" style="display:none;"></div>
+
+            <div class="allocate-action">
+                <button id="allocate-btn" class="action-btn">Allocate</button>
+                <button id="next-question-btn" class="next-btn" style="display:none;">Next Question &rarr;</button>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button id="show-cidr" class="reference-btn">Show CIDR Chart Reference</button>
+            <button id="show-help" class="help-btn">Subnetting Help</button>
+        </div>
+
+        <div id="cidr-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>CIDR Chart Reference</h2>
+                <table id="cidr-table">
+                    <thead>
+                        <tr>
+                            <th>Prefix</th>
+                            <th>Subnet Mask</th>
+                            <th>Wildcard</th>
+                            <th>Usable IPs</th>
+                            <th>Netmask Bits</th>
+                            <th>Host Bits</th>
+                            <th>Possible Subnets</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="help-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-help">&times;</span>
+                <h2>Advanced Subnetting Help (v2)</h2>
+                <div class="help-content">
+                    <h3>What's Different in v2?</h3>
+                    <p>In v2, the IP address shown is <strong>not necessarily the network address</strong>. It could be any host within the subnet. Your first job is to apply the subnet mask to find the actual network address, then derive all other values from there.</p>
+                    <p>This means you must master <strong>cross-octet subnetting</strong> &mdash; cases where the subnet boundary falls in the middle of an octet (like /21, /19, /13).</p>
+
+                    <h3>Key Concepts</h3>
+                    <ul>
+                        <li><strong>IP Address:</strong> A unique 32-bit number (e.g., 172.16.45.137) that identifies a device.</li>
+                        <li><strong>Subnet Mask:</strong> Tells you which bits are "network" and which are "host".</li>
+                        <li><strong>CIDR Notation:</strong> Shorthand for the mask. /21 = 21 network bits, 11 host bits.</li>
+                        <li><strong>Network Address:</strong> IP with all host bits set to 0. Found by ANDing the IP with the mask.</li>
+                        <li><strong>Broadcast Address:</strong> IP with all host bits set to 1.</li>
+                        <li><strong>Cross-Octet Boundary:</strong> When the CIDR prefix doesn't fall on an octet boundary (8, 16, 24), the subnet boundary splits an octet. This is where the real challenge begins.</li>
+                    </ul>
+
+                    <h3>How to Subnet with Non-Boundary IPs</h3>
+                    <ol>
+                        <li><strong>Identify the "interesting" octet</strong> &mdash; The octet where the prefix boundary falls. For /21, the boundary is in the 3rd octet (bits 17-24).</li>
+                        <li><strong>Calculate the block size in that octet</strong> &mdash; Block size = 2<sup>(8 - remaining bits in that octet)</sup>. For /21: 3 bits remain in the 3rd octet, so block = 2<sup>3</sup> = 8.</li>
+                        <li><strong>Find the network address</strong> &mdash; Round down the "interesting" octet to the nearest multiple of the block size. Everything before is unchanged; everything after becomes 0.</li>
+                        <li><strong>Find the broadcast</strong> &mdash; Network address + block size - 1 in the "interesting" octet, with all lower octets set to 255.</li>
+                        <li><strong>First usable</strong> = Network + 1, <strong>Last usable</strong> = Broadcast - 1.</li>
+                    </ol>
+
+                    <h3>Worked Example: Cross-Octet</h3>
+                    <div class="worked-example">
+                        <p><strong>Given:</strong> 172.16.45.137/21</p>
+                        <p><strong>Step 1:</strong> /21 means 21 network bits. The boundary falls in octet 3 (bits 17-24). 21 - 16 = 5 bits used in octet 3.</p>
+                        <p><strong>Step 2:</strong> Remaining host bits in octet 3 = 8 - 5 = 3. Block size = 2<sup>3</sup> = 8.</p>
+                        <p><strong>Step 3:</strong> Octet 3 value is 45. Nearest multiple of 8 that is &le; 45: 40 (since 5 &times; 8 = 40). Network = 172.16.<strong>40</strong>.0</p>
+                        <p><strong>Step 4:</strong> Broadcast = 172.16.(40 + 8 - 1).255 = 172.16.<strong>47</strong>.255</p>
+                        <p><strong>Step 5:</strong> First usable = 172.16.40.1, Last usable = 172.16.47.254</p>
+                        <p><strong>Usable hosts:</strong> 2<sup>11</sup> - 2 = 2046</p>
+                    </div>
+
+                    <h3>Tips for v2 Success</h3>
+                    <ul>
+                        <li>Always identify the "interesting" octet first &mdash; that's where the math happens.</li>
+                        <li>The block size tells you how far apart network addresses are in that octet.</li>
+                        <li>For /24 or /25-/30, the interesting octet is the 4th. For /17-/23, it's the 3rd. For /9-/16, it's the 2nd.</li>
+                        <li>Network addresses are always multiples of the block size in the interesting octet.</li>
+                        <li>Use the hint button &mdash; Level 1 guides your thinking, Level 2 shows worked steps, Level 3 reveals the answer.</li>
+                        <li>Press <kbd>Enter</kbd> to submit your answer quickly.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
